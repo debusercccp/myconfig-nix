@@ -21,9 +21,16 @@
   
   time.timeZone = "Europe/Rome";
   i18n.defaultLocale = "it_IT.UTF-8";
+
+  # Configurazione universale della tastiera (Sistema, TTY e Wayland)
+  services.xserver.xkb = {
+    layout = "gb"; # "gb" è il codice ISO corretto per il layout UK (Regno Unito)
+    variant = "";
+  };
+
   console = {
     font = "Lat2-Terminus16";
-    keyMap = "uk"; # Mappatura tastiera italiana per la TUI/TTY
+    keyMap = "uk"; # Mantiene la TTY testuale in UK
   };
 
   # --- AMBIENTE UTENTE E PERMESSI ---
