@@ -1,0 +1,132 @@
+// =====================================================================
+// Niri Config - Static Setup (No Matugen)
+// =====================================================================
+
+input {
+    keyboard {
+        xkb {
+            layout "uk" 
+        }
+    }
+}
+
+hotkey-overlay {
+    skip-at-startup
+}
+
+layout {
+    focus-ring {
+        width 4
+        active-color "#7aa2f7"   // Tokyo Night: Blu acceso per la finestra attiva
+        inactive-color "#24283b" // Tokyo Night: Sfondo scuro per le finestre inattive
+    }
+
+    border {
+        width 0
+    }
+}
+environment {
+    GDK_BACKEND "wayland"
+    QT_QPA_PLATFORM "wayland"
+    XDG_CURRENT_DESKTOP "niri"
+    XDG_SESSION_TYPE "wayland"
+}
+
+/* ================================================
+   FINESTRE - Regole globali e specifiche
+   ================================================ */
+
+/* Angoli arrotondati e clip per tutte le finestre */
+window-rule {
+    geometry-corner-radius 12
+    clip-to-geometry true
+}
+
+/* Waybar - trasparenza, no border */
+window-rule {
+    match app-id="waybar"
+    draw-border-with-background false
+}
+
+/* Kitty - border con colore dinamico */
+window-rule {
+    match app-id="kitty"
+    geometry-corner-radius 8
+    draw-border-with-background false
+    opacity 0.80
+}
+
+/* Fuzzel launcher - personalizzazione */
+window-rule {
+    match app-id="fuzzel"
+    geometry-corner-radius 12
+}
+
+/* ================================================
+   STARTUP COMMANDS - Avvio servizi e UI
+   ================================================ */
+
+/* DBus environment variables per XDG portal */
+spawn-at-startup "bash" "-c" "dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_TYPE DISPLAY > /dev/null 2>&1"
+
+/* ================================================
+   KEYBINDINGS - Scorciatoie da tastiera
+   ================================================ */
+
+binds {
+    /* ---- Finestre di base ---- */
+    Mod+Q { spawn "kitty"; }
+    Mod+C { close-window; }
+    Mod+R { spawn "fuzzel"; }
+    Mod+Shift+E { quit; }
+    
+    /* ---- Navigazione finestre ---- */
+    Mod+Left  { focus-column-left; }
+    Mod+Right { focus-column-right; }
+    Mod+Up    { focus-window-or-workspace-up; }
+    Mod+Down  { focus-window-or-workspace-down; }
+    
+    /* ---- Spostamento finestre ---- */
+    Mod+Ctrl+Left  { move-column-left; }
+    Mod+Ctrl+Right { move-column-right; }
+    
+    /* ---- Layout e dimensioni ---- */
+    Mod+F { maximize-column; }
+    Mod+Shift+F { maximize-column; }
+    Mod+Minus  { set-column-width "-10%"; }
+    Mod+Plus   { set-column-width "+10%"; }
+    Mod+V { switch-focus-between-floating-and-tiling; }
+    Mod+Shift+V { toggle-window-floating; }
+    
+    /* ---- Workspace navigation ---- */
+    Mod+Page_Down { focus-workspace-down; }
+    Mod+Page_Up   { focus-workspace-up; }
+    Mod+U { focus-workspace-down; }
+    Mod+I { focus-workspace-up; }
+    
+    /* ---- Workspace movement ---- */
+    Mod+Ctrl+Page_Down { move-column-to-workspace-down; }
+    Mod+Ctrl+Page_Up   { move-column-to-workspace-up; }
+    
+    /* ---- Column preset widths ---- */
+    "Mod+BracketLeft" { switch-preset-column-width; }
+    "Mod+Comma"  { consume-or-expel-window-left; }
+    "Mod+Period" { consume-or-expel-window-right; }
+    
+    /* ---- Overview e help ---- */
+    "Mod+Tab" { toggle-overview; }
+    "Mod+Shift+Slash" { show-hotkey-overlay; }
+    
+    /* ---- Brightness control (Fn keys) ---- */
+    "XF86MonBrightnessUp"   { spawn "brightnessctl" "set" "5%+"; }
+    "XF86MonBrightnessDown" { spawn "brightnessctl" "set" "5%-" "-n" "1"; }
+    
+    /* ---- File manager ---- */
+    Mod+E { spawn "dolphin"; }
+
+    XF86AudioRaiseVolume { spawn "wpctl" "set-volume" "-l" "1.0" "@DEFAULT_AUDIO_SINK@" "0.05+"; }
+    XF86AudioLowerVolume { spawn "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "0.05-"; }
+    XF86AudioMute allow-when-locked=true { spawn "wpctl" "set-mute" "@DEFAULT_AUDIO_SINK@" "toggle"; }
+}
+
+

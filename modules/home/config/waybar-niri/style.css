@@ -1,0 +1,113 @@
+/* =====================================================================
+   Waybar - Tokyo Night Storm Style (Fixed Padding)
+   ===================================================================== */
+
+* {
+    border: none;
+    border-radius: 0;
+    font-family: "ShureTechMono Nerd Font", monospace;
+    font-weight: bold;
+    font-size: 14px;
+    min-height: 0;
+}
+
+window#waybar {
+    background: transparent;
+    color: #a9b1d6; /* Tokyo Night: Foreground standard */
+}
+
+/* Container dei moduli con l'estetica Tokyo Night */
+.modules-left,
+.modules-center,
+.modules-right {
+    background: rgba(36, 40, 59, 0.85); /* Sfondo primario (Storm) all'85% di opacità */
+    border-radius: 10px;
+    margin: 4px 4px;
+    padding: 0 6px;
+    border: 1px solid #2f3549; /* Bordo leggero per separare dal desktop */
+}
+
+/* Mantieni la spaziatura fissa per evitare icone schiacciate */
+#custom-launcher, #custom-power, #custom-updates, #niri-workspaces, 
+#clock, #tray, #battery, #pulseaudio, #network, #cpu, #memory, 
+#disk, #temperature, #backlight, #bluetooth, #custom-nightlight, 
+#custom-mounts, #custom-backup {
+    padding: 0 10px;
+}
+
+/* ---- COLORAZIONE MODULI (Mappatura Palette Tokyo Night) ---- */
+
+#clock { 
+    color: #0db9d7; /* Ciano vivido */
+}
+
+#battery { 
+    color: #9ece6a; /* Verde Tokyo (Ok / Carico) */
+}
+#battery.warning, #battery.critical, #battery.discharging {
+    color: #f7768e; /* Rosso Tokyo per stati di scarica o critici */
+}
+
+#network { 
+    color: #b4f9f8; /* Ciano chiarissimo / Light Aqua */
+}
+
+#cpu { 
+    color: #e0af68; /* Giallo caldo / Ambra */
+}
+
+#memory { 
+    color: #bb9af3; /* Magenta / Viola chiaro */
+}
+
+#disk { 
+    color: #cfc9c2; /* Grigiastro pulito per l'archiviazione */
+}
+
+#bluetooth { 
+    color: #7aa2f7; /* Blu Tokyo Night classico */
+}
+
+#pulseaudio { 
+    color: #2ac3de; /* Teal / Ciano alternativo */
+}
+
+#custom-power { 
+    color: #f7768e; /* Rosso Tokyo */
+}
+
+#custom-updates { 
+    color: #ff9e64; /* Arancione Tokyo (Attenzione / Aggiornamenti) */
+}
+
+#custom-launcher {
+    color: #7aa2f7; /* Splice Blu per l'icona di boot */
+    font-size: 18px;
+}
+
+/* --- Gestione Workspaces Niri --- */
+#niri-workspaces button {
+    color: #565f89; /* Grigio/Blu spento per i workspace inattivi */
+    padding: 0 4px;
+}
+
+#niri-workspaces button.active {
+    color: #7abcfa; /* Celeste acceso per il workspace attivo */
+    font-weight: 900;
+}
+
+#custom-mounts {
+    color: #73daca; /* Verde acqua per i mount dei dischi */
+}
+
+/* Tooltip (Finestre pop-up della barra) */
+tooltip {
+    background: #1a1b26; /* Sfondo scuro profondo (Night) */
+    border: 1px solid #7aa2f7; /* Bordo blu accentato */
+    border-radius: 8px;
+}
+
+tooltip label {
+    color: #a9b1d6;
+    padding: 6px;
+}
