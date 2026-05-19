@@ -100,4 +100,17 @@
   security.rtkit.enable = true; # Permette a Pipewire/Wireplumber di acquisire priorità in tempo reale
 
   system.stateVersion = "24.05"; # Mantiene la compatibilità con lo stato iniziale dell'installazione
+
+    # --- OTTIMIZZAZIONE E PULIZIA AUTOMATICA DEL SISTEMA ---
+  nix.settings.auto-optimise-store = true; # Rileva i file duplicati e crea hardlink per risparmiare spazio
+  
+  nix.gc = {
+    automatic = true;
+    dates = "weekly";            # Esegue la pulizia ogni settimana
+    options = "--delete-older-than 14d"; # Pialla automaticamente tutto ciò che è più vecchio di due settimane
+  };
+
+  # Opzionale: Limita il numero massimo di configurazioni visualizzate nel menu di boot
+  boot.loader.systemd-boot.configurationLimit = 10; # Mostra al massimo le ultime 10 generazioni
 }
+
