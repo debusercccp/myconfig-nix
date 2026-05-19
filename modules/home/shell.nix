@@ -42,7 +42,7 @@
 
     # --- PROMPT DINAMICO & AMBIENTI ESTERNI (FIXED BASHRC EXTRA) ---
     bashrcExtra = ''
-      # Path locali per Cargo e script binari utente (Escape Bash attivo: ''$)
+      # Path locali per Cargo e script binari utente
       export PATH="''${HOME}/.cargo/bin:''${PATH}"
       export PATH="''${HOME}/.local/bin:''${PATH}"
 
@@ -54,14 +54,13 @@
       # Configurazione dell'ambiente Rust / Cargo
       [ -f "''${HOME}/.cargo/env" ] && . "''${HOME}/.cargo/env"
 
-      # Funzione per estrarre il ramo Git corrente
-      # FIX: $ normale per le variabili Nix (pkgs), ''$ per la variabile interna di sed (\1)
+      # Funzione Pura Bash per estrarre il ramo Git corrente
       parse_git_branch() {
           git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/ (\1)/'
       }
 
       # Il tuo Prompt Custom: [Orario] noya@lynx [Path] (ramo_git) -->
       export PS1='\[\033[35m\]\t \[\033[37m\]\u\[\033[38;5;213m\]@\h \[\033[33m\]\w\[\033[1;36m\]$(parse_git_branch)\[\033[0m\] '
-    '';  
+    ''; 
     };
 }
