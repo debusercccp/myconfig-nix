@@ -96,20 +96,20 @@ require("lazy").setup({
   }
 })
 
--- 4. CONFIGURAZIONE LSP (Dopo il setup dei plugin)
+-- ========================================================================== --
+-- 4. CONFIGURAZIONE LSP (Ottimizzata per NixOS - No Mason Auto-Install)      --
+-- ========================================================================== --
 local lspconfig = require("lspconfig")
-require("mason-lspconfig").setup({
-  -- Lista dei server da installare automaticamente
-  ensure_installed = { 
-    "lua_ls",    -- Lua
-    "pyright",   -- Python
-    "rust_analyzer", -- Rust
-    "clangd",    -- C / C++
-  }
-})
 
--- Funzione helper per attivare i server con impostazioni standard
+-- Inizializziamo Mason e mason-lspconfig in modalità passiva.
+-- NON usiamo ensure_installed: su NixOS i binari arrivano dal Flake.
+require("mason").setup()
+require("mason-lspconfig").setup()
+
+-- Elenco dei server che hai installato (o installerai) tramite NixOS/Home Manager
 local servers = { "pyright", "rust_analyzer", "clangd", "r_language_server" }
+
+-- Attiva i server standard cercandoli direttamente nel PATH di NixOS
 for _, lsp in ipairs(servers) do
   lspconfig[lsp].setup({})
 end

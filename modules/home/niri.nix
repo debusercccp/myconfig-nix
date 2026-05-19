@@ -8,6 +8,12 @@
     brightnessctl
     wireplumber
     kdePackages.dolphin
+
+    pyright
+    nodejs
+    rust-analyzer
+    clang-tools
+    lua-language-server
   ];
 
   # Abilitiamo Waybar e Dunst come servizi utente Systemd
