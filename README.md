@@ -434,18 +434,6 @@ git push origin master
 
 ---
 
-## Prossimi Step
-
-Possibili aggiunte future:
-
-- [ ] SSH/GPG declarativo
-- [ ] Systemd user timers (manutenzione automatica)
-- [ ] Backup declarativo (restic/rsync)
-- [ ] Direnv (.envrc per auto-load devshell)
-- [ ] Multihost NixOS (laptop + desktop)
-
----
-
 ## Support
 
 Per bug, feature request, o domande:
