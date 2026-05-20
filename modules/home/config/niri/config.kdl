@@ -69,6 +69,8 @@ window-rule {
 /* DBus environment variables per XDG portal */
 spawn-at-startup "bash" "-c" "dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_TYPE DISPLAY > /dev/null 2>&1"
 
+spawn-at-startup "batteryMonitor"
+
 /* ================================================
    KEYBINDINGS - Scorciatoie da tastiera
    ================================================ */
