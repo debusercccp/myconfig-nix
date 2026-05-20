@@ -5,6 +5,13 @@
     ./hardware-configuration.nix # Questo file viene mantenuto così come generato dall'installer
   ];
 
+  # Abilita il supporto Bluetooth hardware
+  hardware.bluetooth.enable = true;
+  hardware.bluetooth.powerOnBoot = true; # Accendi al boot
+
+  # Abilita il demone Blueman (necessario per blueman-manager)
+  services.blueman.enable = true;
+
   # --- ABILITAZIONE PARADIGMA MODERNO NIX ---
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 

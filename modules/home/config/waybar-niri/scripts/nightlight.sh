@@ -1,35 +1,28 @@
-#!/bin/bash
-# Script: ~/.config/waybar/scripts/nightlight.sh
+#!/usr/bin/env bash
 
-# Coordinate per l'attivazione automatica (Es. Roma)
-LAT="41.90"
-LON="12.49"
-# Temperatura giorno e notte
-TEMP_DAY="6500"
-TEMP_NIGHT="3500"
+STATE_FILE="/tmp/niri_nightlight_status"
 
-# Controlla se il processo è attivo
 is_running() {
-    pgrep -x "gammastep" > /dev/null
+    [ -f "$STATE_FILE" ] && [ "$(cat $STATE_FILE)" = "on" ]
 }
 
 case "$1" in
     toggle)
         if is_running; then
-            # Se è acceso, lo killa (forza disattivazione)
-            killall gammastep
+            # RIPRISTINA COLORI NORMALI
+            niri msg action set-output-color-transform eDP-1 "off"
+            echo "off" > "$STATE_FILE"
         else
-            # Se è spento, lo avvia in background in modalità automatica
-            gammastep -l $LAT:$LON -t $TEMP_DAY:$TEMP_NIGHT &
+            # APPLICA LUCE CALDA
+            niri msg action set-output-color-transform eDP-1 "temperature=3500"
+            echo "on" > "$STATE_FILE"
         fi
         ;;
     status)
         if is_running; then
-            # Icona accesa (Luce calda)
-            echo '{"text": "󰛑", "class": "on", "tooltip": "Filtro Attivo (Automatico)\nTemperatura: '$TEMP_NIGHT'K"}'
+            echo '{"text": "󰛑", "class": "on", "tooltip": "Filtro Attivo\nTemperatura: 3500K"}'
         else
-            # Icona spenta (Luce fredda/normale)
-            echo '{"text": "󰛨", "class": "off", "tooltip": "Filtro Disattivato\nClick per attivare"}'
+            echo '{"text": "󰛨", "class": "off", "tooltip": "Filtro Disattivato"}'
         fi
         ;;
 esac

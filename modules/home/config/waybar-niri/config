@@ -21,7 +21,7 @@
 
     "modules-right": [
         "custom/mounts",
-        "custom/backup", // L'ho aggiunto qui così lo vedi quando parte!
+        "custom/backup",
         "tray",
         "custom/updates",
         "temperature",
@@ -32,6 +32,7 @@
         "bluetooth",
         "pulseaudio#microphone",
         "pulseaudio",
+        "custom/weather",
         "battery",
         "network",
         "custom/power"
@@ -195,18 +196,18 @@
 
     "custom/updates": {
         "format": "{}",
-        "exec": "apt list --upgradable 2>/dev/null | tail -n +2 | wc -l | xargs -I{} echo '{} 󰚰'",
+        "exec": "update-sys",
         "interval": 3600,
-        "tooltip": true,
-        "tooltip-format": "Aggiornamenti disponibili"
+        "on-click": "update-sys update",
+        "return-type": "json"
     },
 
     "custom/mounts": {
         "format": "{}",
-        "exec": "~/.config/waybar/scripts/mounts.sh waybar",
+        "exec": "mounts.sh waybar",
         "return-type": "json",
         "interval": 10,
-        "on-click": "~/.config/waybar/scripts/mounts.sh toggle",
+        "on-click": "mounts.sh toggle",
         "tooltip": true
     },
 
@@ -220,15 +221,23 @@
         "format": "{}",
         "return-type": "json",
         "interval": 2,
-        "exec": "~/.config/waybar/scripts/nightlight.sh status",
-        "on-click": "~/.config/waybar/scripts/nightlight.sh toggle"
+        "exec": "nightlight.sh status",
+        "on-click": "nightlight.sh toggle"
     },
 
     "bluetooth": {
         "format": "󰂯",
         "format-disabled": "󰂲",
         "format-connected": "󰂱 {num_connections}",
-        "on-click": "/usr/sbin/rfkill toggle bluetooth", // <--- PERCORSO COMPLETO
+        "on-click": "rfkill toggle bluetooth",
         "on-click-right": "blueman-manager"
+    },
+
+    "custom/weather": {
+        "format": "{}",
+        "tooltip": true,
+        "interval": 3600,
+        "exec": "~/.local/bin/wttr.py",
+        "return-type": "json"
     }
 }

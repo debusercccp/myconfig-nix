@@ -32,6 +32,11 @@ environment {
     XDG_SESSION_TYPE "wayland"
 }
 
+// Sintassi corretta nativa di Niri:
+output "eDP-1" {
+    // Qui andranno eventuali impostazioni come: scale 1.0
+}
+
 /* ================================================
    FINESTRE - Regole globali e specifiche
    ================================================ */
@@ -70,6 +75,8 @@ window-rule {
 spawn-at-startup "bash" "-c" "dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_TYPE DISPLAY > /dev/null 2>&1"
 
 spawn-at-startup "batteryMonitor"
+
+spawn-at-startup "nightlight.sh" "toggle"
 
 /* ================================================
    KEYBINDINGS - Scorciatoie da tastiera
@@ -118,6 +125,9 @@ binds {
     /* ---- Overview e help ---- */
     "Mod+Tab" { toggle-overview; }
     "Mod+Shift+Slash" { show-hotkey-overlay; }
+
+    /* ---- Luce Notturna (Controlli manuali rapidi) ---- */
+    "Mod+Shift+N" { spawn "nightlight.sh" "toggle"; }
 
     /* ---- Brightness control (Fn keys) ---- */
     "XF86MonBrightnessUp"   { spawn "brightnessctl" "set" "5%+"; }
