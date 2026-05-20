@@ -5,7 +5,14 @@
     package = pkgs.starship;
 
     settings = {
-      format = "$username$hostname$directory$git_branch$line_break$character";
+      format = "$time $username$hostname$directory$git_branch$line_break$character";
+
+      time = {
+        disabled = false;
+        format = "[$time]($style) ";
+        time_format = "%H:%M:%S";
+        style = "bold blue";
+        };
 
       character = {
         success_symbol = "[>](bold green)";

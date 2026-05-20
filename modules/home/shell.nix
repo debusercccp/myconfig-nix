@@ -19,6 +19,7 @@
       nix-switch = "sudo nixos-rebuild switch --flake /etc/nixos#lynx";
       nix-clean = "sudo nix-env --delete-generations old && nix-store --gc";
       cestino = "rm -rf ~/.local/share/Trash/*";
+      backup-ssd = "/home/noya/backupMiniSSD/backup_to_minissd.sh";
     };
     sessionVariables = {
       GH_TOKEN = "suca";
