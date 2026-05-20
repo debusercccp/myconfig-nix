@@ -11,7 +11,7 @@
         disabled = false;
         format = "[$time]($style) ";
         time_format = "%H:%M:%S";
-        style = "bold blue";
+        style = "bold bright-blue";
         };
 
       character = {
