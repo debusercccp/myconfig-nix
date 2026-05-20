@@ -17,14 +17,14 @@
       username = {
         show_always = true;
         format = "[$user]($style) ";
-        style_user = "bold cyan";
+        style_user = "bold purple";
         style_root = "bold red";
       };
 
       hostname = {
         ssh_only = false;
         format = "[@$hostname]($style) ";
-        style = "bold blue";
+        style = "bold white";
       };
 
       directory = {
@@ -37,16 +37,13 @@
       git_branch = {
         symbol = "git:";
         format = "[$symbol$branch]($style) ";
-        style = "bold purple";
+        style = "bold cyan";
       };
 
       git_status = {
         format = "([$all_status]($style) )";
         style = "bold red";
         modified = "!";
-        ahead = "↑";
-        behind = "↓";
-        diverged = "↕";
       };
     };
   };

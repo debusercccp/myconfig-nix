@@ -27,7 +27,7 @@
       ];
     };
 
-    homeConfigurations."noya@debian" = home-manager.lib.homeManagerConfiguration {
+    homeConfigurations."noya@orion" = home-manager.lib.homeManagerConfiguration {
       inherit pkgs;
       modules = [ ./modules/home ];
     };
@@ -35,18 +35,22 @@
     devShells.x86_64-linux = {
       default = pkgs.mkShell {
         buildInputs = [ pkgs.rustc pkgs.python3 pkgs.nodejs ];
+        shellHook = "echo 'default: Rust, Python, Node'";
       };
 
       rust = pkgs.mkShell {
         buildInputs = [ pkgs.rustc pkgs.cargo pkgs.rustfmt pkgs.clippy ];
+        shellHook = "echo 'Rust shell loaded'";
       };
 
       python = pkgs.mkShell {
         buildInputs = [ pkgs.python3 ];
+        shellHook = "echo 'Python shell loaded'";
       };
 
       node = pkgs.mkShell {
         buildInputs = [ pkgs.nodejs ];
+        shellHook = "echo 'Node shell loaded'";
       };
     };
   };
