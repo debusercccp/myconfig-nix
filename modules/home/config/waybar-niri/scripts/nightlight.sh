@@ -1,28 +1,26 @@
 #!/usr/bin/env bash
-
-STATE_FILE="/tmp/niri_nightlight_status"
+# Script per Waybar: Controllo dinamico di Gammastep + GeoClue2 via Systemd
 
 is_running() {
-    [ -f "$STATE_FILE" ] && [ "$(cat $STATE_FILE)" = "on" ]
+    # Controlla se il servizio di Home Manager è attivo
+    systemctl --user is-active gammastep.service > /dev/null
 }
 
 case "$1" in
     toggle)
         if is_running; then
-            # RIPRISTINA COLORI NORMALI
-            niri msg action set-output-color-transform eDP-1 "off"
-            echo "off" > "$STATE_FILE"
+            # Spegne il servizio
+            systemctl --user stop gammastep.service
         else
-            # APPLICA LUCE CALDA
-            niri msg action set-output-color-transform eDP-1 "temperature=3500"
-            echo "on" > "$STATE_FILE"
+            # Avvia il servizio (che interrogherà GeoClue2 in base a dove ti trovi)
+            systemctl --user start gammastep.service
         fi
         ;;
     status)
         if is_running; then
-            echo '{"text": "󰛑", "class": "on", "tooltip": "Filtro Attivo\nTemperatura: 3500K"}'
+            echo '{"text": "󰛑", "class": "on", "tooltip": "Luce Notturna: ATTIVA\nPosizione: Dinamica (GeoClue2)"}'
         else
-            echo '{"text": "󰛨", "class": "off", "tooltip": "Filtro Disattivato"}'
+            echo '{"text": "󰛨", "class": "off", "tooltip": "Luce Notturna: DISATTIVATA\nClick per attivare"}'
         fi
         ;;
 esac

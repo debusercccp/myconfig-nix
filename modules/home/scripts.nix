@@ -9,7 +9,6 @@
     rsync
     util-linux
     blueman
-    gammastep
 
     # Python con la libreria requests inclusa isolata per il meteo
     (python3.withPackages (ps: with ps; [ requests ]))
@@ -39,6 +38,7 @@
     source = ./config/waybar-niri/scripts/wttr.py;
   };
 
+  # Script Luce Notturna (Nightlight)
   home.file.".local/bin/nightlight.sh" = {
     executable = true;
     source = ./config/waybar-niri/scripts/nightlight.sh;

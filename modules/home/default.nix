@@ -22,4 +22,18 @@
   ];
   programs.home-manager.enable = true;
   home.stateVersion = "24.05";
+
+ services.gammastep = {
+    enable = true;
+    provider = "geoclue2";
+    temperature = {
+      day = 6500;
+      night = 3500;
+    };
+    settings = {
+      general = {
+        adjustment-method = "wayland";
+      };
+    };
+  };
 }

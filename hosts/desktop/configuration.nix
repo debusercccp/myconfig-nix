@@ -25,8 +25,17 @@
   # Abilita il demone per il montaggio automatico dei dischi (richiesto da udisksctl)
   services.udisks2.enable = true;
 
-  # Abilita il provider di geolocalizzazione di sistema
-  services.geoclue2.enable = true;
+  # Abilita la geolocalizzazione di sistema
+  services.geoclue2 = {
+    enable = true;
+    # Whitelist per consentire a Gammastep di leggere la posizione
+    appConfig = {
+      "gammastep" = {
+        isAllowed = true;
+        isSystem = false;
+      };
+    };
+  };
 
   # Supporto per i file system più comuni sui dischi esterni
   boot.supportedFilesystems = [ "ntfs" "vfat" "exfat" "ext4" ];
