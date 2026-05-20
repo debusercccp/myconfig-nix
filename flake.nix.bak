@@ -1,0 +1,135 @@
+{
+  description = "Noya's Declarative NixOS and Dotfiles Flake Configuration";
+  inputs = {
+    # Canale instabile per avere gli ultimi aggiornamenti di Niri, Neovim e pacchetti di sviluppo
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    # Home Manager sincronizzato con lo stesso canale di nixpkgs
+    home-manager = {
+      url = "github:nix-community/home-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+  };
+
+  outputs = { self, nixpkgs, home-manager, ... }@inputs:
+  let
+    system = "x86_64-linux";
+    pkgs = nixpkgs.legacyPackages.${system};
+  in
+  {
+    # ============= NixOS Configuration =============
+    nixosConfigurations = {
+      # Deve coincidere esattamente con l'hostname impostato in configuration.nix (lynx)
+      lynx = nixpkgs.lib.nixosSystem {
+        inherit system;
+        modules = [
+          # 1. Configurazione hardware e di sistema globale
+          ./hosts/desktop/configuration.nix
+          # 2. Modulo Home Manager integrato a livello di sistema
+          home-manager.nixosModules.home-manager
+          {
+            home-manager.useGlobalPkgs = true;
+            home-manager.useUserPackages = true;
+            
+            # Colleghiamo l'utente "noya" al punto d'ingresso dei moduli utente
+            home-manager.users.noya = import ./modules/home;
+          }
+        ];
+      };
+    };
+
+    # ============= Home Manager Standalone (per Debian) =============
+    homeConfigurations = {
+      "noya@orion" = home-manager.lib.homeManagerConfiguration {
+        inherit pkgs;
+        modules = [ ./modules/home ];
+      };
+    };
+
+    # ============= Development Shells =============
+    devShells.${system} = {
+      # Default shell: Rust + Python + Node + C/C++
+      default = pkgs.mkShell {
+        name = "dev-default";
+        buildInputs = with pkgs; [
+          # Rust ecosystem
+          rust rustfmt clippy cargo
+          
+          # Python ecosystem
+          python3 python3Packages.pip python3Packages.virtualenv
+          
+          # Node/JS ecosystem
+          nodejs nodePackages.npm nodePackages.yarn
+          
+          # C/C++
+          gcc clang lldb cmake make
+          
+          # Utils generali
+          git jq vim tmux
+        ];
+        shellHook = ''
+          echo " Dev shell loaded: Rust, Python, Node, C/C++"
+          rustc --version
+          python3 --version
+          node --version
+        '';
+      };
+
+      # Rust-only shell
+      rust = pkgs.mkShell {
+        name = "dev-rust";
+        buildInputs = with pkgs; [
+          rust rustfmt clippy cargo
+          lldb
+          pkg-config
+        ];
+        shellHook = ''
+          echo " Rust dev shell"
+          rustc --version
+        '';
+      };
+
+      # Python-only shell
+      python = pkgs.mkShell {
+        name = "dev-python";
+        buildInputs = with pkgs; [
+          python3 python3Packages.pip python3Packages.virtualenv
+          python3Packages.black python3Packages.flake8 python3Packages.mypy
+        ];
+        shellHook = ''
+          echo " Python dev shell"
+          python3 --version
+          # Auto-create venv se non esiste
+          if [ ! -d venv ]; then
+            python3 -m venv venv
+          fi
+          source venv/bin/activate
+        '';
+      };
+
+      # Bioinformatics shell (con strumenti specifici)
+      bioinf = pkgs.mkShell {
+        name = "dev-bioinf";
+        buildInputs = with pkgs; [
+          python3 python3Packages.pip python3Packages.virtualenv
+          # Bioinformatics tools
+          biopython emboss samtools bcftools vcftools
+        ];
+        shellHook = ''
+          echo " Bioinformatics dev shell"
+        '';
+      };
+
+      # Node/JS shell
+      node = pkgs.mkShell {
+        name = "dev-node";
+        buildInputs = with pkgs; [
+          nodejs nodePackages.npm nodePackages.yarn
+        ];
+        shellHook = ''
+          echo " Node dev shell"
+          node --version && npm --version
+        '';
+      };
+    };
+  };
+}

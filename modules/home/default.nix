@@ -1,9 +1,7 @@
 { pkgs, ... }:
-
 {
   home.username = "noya";
   home.homeDirectory = "/home/noya";
-
   imports = [
     ./niri.nix
     ./nvim.nix
@@ -11,8 +9,11 @@
     ./dunst.nix
     ./scripts.nix
     ./shell.nix
+    ./precommit.nix
+    ./formatters.nix
+    ./tmux.nix
+    ./starship.nix
   ];
-
   # Pacchetti generali richiesti dalle tue utility
   home.packages = with pkgs; [
     git
@@ -21,7 +22,6 @@
     acpi      # Richiesto per controllare lo stato della batteria
     rsync     # Consigliato per gli script di backup
   ];
-
   programs.home-manager.enable = true;
   home.stateVersion = "24.05";
 }

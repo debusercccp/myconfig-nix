@@ -1,0 +1,53 @@
+{ pkgs, ... }:
+{
+  programs.starship = {
+    enable = true;
+    package = pkgs.starship;
+
+    settings = {
+      format = "$username$hostname$directory$git_branch$line_break$character";
+
+      character = {
+        success_symbol = "[>](bold green)";
+        error_symbol = "[>](bold red)";
+      };
+
+      line_break.disabled = false;
+
+      username = {
+        show_always = true;
+        format = "[$user]($style) ";
+        style_user = "bold cyan";
+        style_root = "bold red";
+      };
+
+      hostname = {
+        ssh_only = false;
+        format = "[@$hostname]($style) ";
+        style = "bold blue";
+      };
+
+      directory = {
+        truncation_length = 3;
+        format = "[$path]($style) ";
+        style = "bold yellow";
+        home_symbol = "~";
+      };
+
+      git_branch = {
+        symbol = "git:";
+        format = "[$symbol$branch]($style) ";
+        style = "bold purple";
+      };
+
+      git_status = {
+        format = "([$all_status]($style) )";
+        style = "bold red";
+        modified = "!";
+        ahead = "↑";
+        behind = "↓";
+        diverged = "↕";
+      };
+    };
+  };
+}

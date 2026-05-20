@@ -1,0 +1,47 @@
+{ pkgs, ... }:
+{
+  # Installiamo i formatter globalmente per farli disponibili in Neovim e CLI
+  home.packages = with pkgs; [
+    # Formatters
+    nodePackages.prettier      # JS, JSON, Markdown, YAML, HTML, CSS
+    black                      # Python
+    rustfmt                    # Rust
+    shfmt                      # Bash/Shell
+    clang-tools               # C/C++ formatter
+    lua54Packages.luaformatter # Lua
+
+    # Linters
+    nodePackages.eslint        # JavaScript/TypeScript
+    pylint flake8 mypy         # Python
+    shellcheck                 # Bash/Shell
+    yamllint                   # YAML
+
+    # Utilità aggiuntive
+    ripgrep fd fzf bat exa     # Moderni replacements per grep, find, ls
+    httpie                     # curl più elegante
+    imagemagick ffmpeg         # Media
+  ];
+
+  # Configurazione globale di Neovim per i formatter (conform.nvim)
+  # Aggiungi questo al tuo init.lua:
+  # local conform = require("conform")
+  # conform.setup({
+  #   formatters_by_ft = {
+  #     lua = { "luaformatter" },
+  #     python = { "black" },
+  #     javascript = { "prettier" },
+  #     typescript = { "prettier" },
+  #     json = { "prettier" },
+  #     markdown = { "prettier" },
+  #     yaml = { "prettier" },
+  #     bash = { "shfmt" },
+  #     rust = { "rustfmt" },
+  #     c = { "clang_format" },
+  #     cpp = { "clang_format" },
+  #   },
+  #   format_on_save = {
+  #     timeout_ms = 500,
+  #     lsp_fallback = true,
+  #   },
+  # })
+}
