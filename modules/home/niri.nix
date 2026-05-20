@@ -19,7 +19,7 @@
   # Abilitiamo Waybar e Dunst come servizi utente Systemd
   programs.waybar = {
     enable = true;
-    systemd.enable = true; 
+    systemd.enable = true;
   };
 
   services.dunst = {

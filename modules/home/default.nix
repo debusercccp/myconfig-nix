@@ -9,18 +9,16 @@
     ./dunst.nix
     ./scripts.nix
     ./shell.nix
-    ./precommit.nix
     ./formatters.nix
-    ./tmux.nix
     ./starship.nix
+    ./precommit.nix
   ];
-  # Pacchetti generali richiesti dalle tue utility
   home.packages = with pkgs; [
     git
     jq
-    libnotify # Richiesto da batteryMonitor e dunst
-    acpi      # Richiesto per controllare lo stato della batteria
-    rsync     # Consigliato per gli script di backup
+    libnotify
+    acpi
+    rsync
   ];
   programs.home-manager.enable = true;
   home.stateVersion = "24.05";

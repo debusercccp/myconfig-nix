@@ -30,12 +30,12 @@ toggle_device() {
     if [ "$(is_mounted "$dev")" = "true" ]; then
         # Prende tutte le partizioni montate
         local partitions=$(lsblk -rpo NAME,TYPE,MOUNTPOINT "$dev" | awk '$2=="part" && $3!="" {print $1}')
-        
+
         for part in $partitions; do
             # Se lo smontaggio fallisce (||), notifica ed esce dallo script
             udisksctl unmount -b "$part" &> /dev/null || { notify "critical" "Errore: Disco occupato!"; exit 1; }
         done
-        
+
         # Se arriva qui, ha smontato tutto correttamente
         udisksctl power-off -b "$dev" &> /dev/null
         notify "normal" "Disco rimosso in sicurezza "
@@ -52,7 +52,7 @@ toggle_device() {
 
 waybar_output() {
     local dev=$(get_removable_devices | head -1)
-    
+
     if [ -z "$dev" ]; then
         # Stato: Nessun disco inserito (Grigio nel CSS)
         echo "{\"text\": \"$ICON_HDD\", \"class\": \"empty\", \"tooltip\": \"Nessun dispositivo USB\"}"

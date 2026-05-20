@@ -20,7 +20,7 @@
     ],
 
     "modules-right": [
-        "custom/mounts", 
+        "custom/mounts",
         "custom/backup", // L'ho aggiunto qui così lo vedi quando parte!
         "tray",
         "custom/updates",

@@ -9,16 +9,16 @@ devShells.${system} = {
     buildInputs = with pkgs; [
       # Rust ecosystem
       rust rustfmt clippy cargo
-      
+
       # Python ecosystem
       python3 python3Packages.pip python3Packages.virtualenv
-      
+
       # Node/JS ecosystem
       nodejs nodePackages.npm nodePackages.yarn
-      
+
       # C/C++
       gcc clang lldb cmake make
-      
+
       # Utils generali
       git jq vim tmux
     ];

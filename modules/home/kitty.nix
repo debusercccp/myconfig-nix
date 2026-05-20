@@ -3,7 +3,7 @@
 {
   programs.kitty = {
     enable = true;
-    
+
     font = {
       name = "ShureTechMono Nerd Font";
       size = 11;

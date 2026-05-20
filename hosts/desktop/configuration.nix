@@ -11,14 +11,14 @@
   # --- CONFIGURAZIONE BOOTLOADER & KERNEL ---
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
-  
-  # Nota: Se in futuro vorrai compilare i tuoi kernel custom o applicare patch (es. Bore) 
+
+  # Nota: Se in futuro vorrai compilare i tuoi kernel custom o applicare patch (es. Bore)
   # potrai farlo dichiarativamente qui usando boot.kernelPackages.
 
   # --- RETE E LOCALIZZAZIONE ---
   networking.hostName = "lynx"; # Il tuo hostname originale
   networking.networkmanager.enable = true;
-  
+
   time.timeZone = "Europe/Rome";
   i18n.defaultLocale = "it_IT.UTF-8";
 
@@ -44,7 +44,7 @@
   # Abilitiamo Niri a livello di sistema operativo per configurare correttamente
   # i canali grafici, i permessi Wayland e le sessioni di sistema.
   programs.niri.enable = true;
-  
+
   # Un Display Manager minimale basato su TUI (coerente col tuo setup leggero)
   services.displayManager.ly.enable = true;
 
@@ -80,7 +80,7 @@
     git
     curl
     cargo
-    
+
     util-linux
     acpi
     libnotify
@@ -89,7 +89,7 @@
     htop
     nmap
     tree
-    
+
     # Sicurezza ed esperimenti in chroot / jail isolati
     bubblewrap # Strumento moderno e sicuro per creare jail isolate su NixOS senza manipolare i mount di root
     coreutils
@@ -103,7 +103,7 @@
 
     # --- OTTIMIZZAZIONE E PULIZIA AUTOMATICA DEL SISTEMA ---
   nix.settings.auto-optimise-store = true; # Rileva i file duplicati e crea hardlink per risparmiare spazio
-  
+
   nix.gc = {
     automatic = true;
     dates = "weekly";            # Esegue la pulizia ogni settimana
@@ -113,4 +113,3 @@
   # Opzionale: Limita il numero massimo di configurazioni visualizzate nel menu di boot
   boot.loader.systemd-boot.configurationLimit = 10; # Mostra al massimo le ultime 10 generazioni
 }
-

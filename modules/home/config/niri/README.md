@@ -50,7 +50,7 @@ sudo apt install \
   rfkill \
   psmisc
 
-usermod -aG video 
+usermod -aG video
 
 chmod +s /usr/sbin/rfkill
 ```
@@ -216,17 +216,17 @@ binds {
     Mod+C { close-window; }
     Mod+R { spawn "fuzzel"; }
     Mod+Shift+E { quit; }
-    
+
     // Navigazione tra colonne
     Mod+Left  { focus-column-left; }
     Mod+Right { focus-column-right; }
     Mod+Up    { focus-window-or-workspace-up; }
     Mod+Down  { focus-window-or-workspace-down; }
-    
+
     // Movimento finestre
     Mod+Ctrl+Left  { move-column-left; }
     Mod+Ctrl+Right { move-column-right; }
-    
+
     // Layout
     Mod+F { maximize-column; }
     Mod+Comma  { consume-window-into-column; }
@@ -710,5 +710,5 @@ Se riscontri problemi non documentati qui:
 
 ---
 
-**Ultima modifica**: Maggio 2026  
+**Ultima modifica**: Maggio 2026
 **Testato su**: Debian Trixie (Testing), Niri 26.04, Waybar 0.12.0

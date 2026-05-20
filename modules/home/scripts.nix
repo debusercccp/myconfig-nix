@@ -24,7 +24,7 @@ let
     }
 
     # ECCOR IL FIX: usiamo ''$ per l'escape dell'interpolazione in Nix string
-    LOCKFILE="/tmp/backup_hdd_''${UUID_ATTUALE}.lock" 
+    LOCKFILE="/tmp/backup_hdd_''${UUID_ATTUALE}.lock"
     if [ -e "$LOCKFILE" ]; then
         PID=$(${pkgs.coreutils}/bin/cat "$LOCKFILE")
         if ${pkgs.procps}/bin/ps -p "$PID" > /dev/null; then
@@ -110,7 +110,7 @@ let
                         "Porcamadonna la batteria è scarica" \
                         "Il livello della batteria è al $capacity%. Collega il caricabatterie."
         fi
-        
+
         # Attendi 120 secondi prima del prossimo controllo passivo
         sleep 120
     done

@@ -20,7 +20,7 @@
       grep = "grep --color=auto";
       # Sviluppo (Python venv & Aider/Ollama)
       activate = "source .venv/bin/activate";
-      
+
       # Manutenzione NixOS (Sostituiscono Apt)
       nix-switch = "sudo nixos-rebuild switch --flake /etc/nixos#lynx";
       nix-clean = "sudo nix-env --delete-generations old && nix-store --gc";
@@ -43,9 +43,9 @@
       [ -s "''${NVM_DIR}/bash_completion" ] && \. "''${NVM_DIR}/bash_completion"
       # Configurazione dell'ambiente Rust / Cargo
       [ -f "''${HOME}/.cargo/env" ] && . "''${HOME}/.cargo/env"
-      
+
       # ===== Starship Initialization =====
       eval "$(${pkgs.starship}/bin/starship init bash)"
-    ''; 
+    '';
   };
 }

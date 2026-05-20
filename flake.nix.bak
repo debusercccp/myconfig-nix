@@ -29,7 +29,7 @@
           {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
-            
+
             # Colleghiamo l'utente "noya" al punto d'ingresso dei moduli utente
             home-manager.users.noya = import ./modules/home;
           }
@@ -53,16 +53,16 @@
         buildInputs = with pkgs; [
           # Rust ecosystem
           rust rustfmt clippy cargo
-          
+
           # Python ecosystem
           python3 python3Packages.pip python3Packages.virtualenv
-          
+
           # Node/JS ecosystem
           nodejs nodePackages.npm nodePackages.yarn
-          
+
           # C/C++
           gcc clang lldb cmake make
-          
+
           # Utils generali
           git jq vim tmux
         ];

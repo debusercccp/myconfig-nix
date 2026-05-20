@@ -28,55 +28,55 @@ window#waybar {
 }
 
 /* Mantieni la spaziatura fissa per evitare icone schiacciate */
-#custom-launcher, #custom-power, #custom-updates, #niri-workspaces, 
-#clock, #tray, #battery, #pulseaudio, #network, #cpu, #memory, 
-#disk, #temperature, #backlight, #bluetooth, #custom-nightlight, 
+#custom-launcher, #custom-power, #custom-updates, #niri-workspaces,
+#clock, #tray, #battery, #pulseaudio, #network, #cpu, #memory,
+#disk, #temperature, #backlight, #bluetooth, #custom-nightlight,
 #custom-mounts, #custom-backup {
     padding: 0 10px;
 }
 
 /* ---- COLORAZIONE MODULI (Mappatura Palette Tokyo Night) ---- */
 
-#clock { 
+#clock {
     color: #0db9d7; /* Ciano vivido */
 }
 
-#battery { 
+#battery {
     color: #9ece6a; /* Verde Tokyo (Ok / Carico) */
 }
 #battery.warning, #battery.critical, #battery.discharging {
     color: #f7768e; /* Rosso Tokyo per stati di scarica o critici */
 }
 
-#network { 
+#network {
     color: #b4f9f8; /* Ciano chiarissimo / Light Aqua */
 }
 
-#cpu { 
+#cpu {
     color: #e0af68; /* Giallo caldo / Ambra */
 }
 
-#memory { 
+#memory {
     color: #bb9af3; /* Magenta / Viola chiaro */
 }
 
-#disk { 
+#disk {
     color: #cfc9c2; /* Grigiastro pulito per l'archiviazione */
 }
 
-#bluetooth { 
+#bluetooth {
     color: #7aa2f7; /* Blu Tokyo Night classico */
 }
 
-#pulseaudio { 
+#pulseaudio {
     color: #2ac3de; /* Teal / Ciano alternativo */
 }
 
-#custom-power { 
+#custom-power {
     color: #f7768e; /* Rosso Tokyo */
 }
 
-#custom-updates { 
+#custom-updates {
     color: #ff9e64; /* Arancione Tokyo (Attenzione / Aggiornamenti) */
 }
 

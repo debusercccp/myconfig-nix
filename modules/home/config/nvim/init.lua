@@ -27,15 +27,15 @@ vim.opt.cursorline = true       -- Evidenzia la riga corrente
 
 -- 3. PLUGIN (Gestiti da Lazy)
 require("lazy").setup({
-  
+
   -- TEMA (TokyoNight)
-  { 
-    "folke/tokyonight.nvim", 
-    lazy = false, 
-    priority = 1000, 
-    config = function() 
-      vim.cmd[[colorscheme tokyonight-storm]] 
-    end 
+  {
+    "folke/tokyonight.nvim",
+    lazy = false,
+    priority = 1000,
+    config = function()
+      vim.cmd[[colorscheme tokyonight-storm]]
+    end
   },
 
   -- ESPLORATORE FILE
@@ -53,7 +53,7 @@ require("lazy").setup({
   -- LSP: GESTIONE E CONFIGURAZIONE
   { "williamboman/mason.nvim", config = true },
   { "williamboman/mason-lspconfig.nvim" },
-  
+
   {
     "neovim/nvim-lspconfig",
     version = "v2.*"
@@ -75,10 +75,10 @@ require("lazy").setup({
   },
 
   -- TELESCOPE (Ricerca file)
-  { 
-    'nvim-telescope/telescope.nvim', 
+  {
+    'nvim-telescope/telescope.nvim',
     dependencies = { 'nvim-lua/plenary.nvim' },
-    tag = "0.1.8", 
+    tag = "0.1.8",
     config = true
   },
 
@@ -86,10 +86,10 @@ require("lazy").setup({
   {
     "David-Kunz/gen.nvim",
     opts = {
-      model = "qwen2.5-coder:1.5b", 
+      model = "qwen2.5-coder:1.5b",
       host = "localhost",
       port = "11434",
-      display_mode = "vertical-split",     
+      display_mode = "vertical-split",
       show_prompt = true,
       show_model = true,
     }

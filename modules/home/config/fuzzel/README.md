@@ -75,8 +75,8 @@ border=bd93f9ff
 [prompt]
 text= 󰍉              # Icon + spazio
 # Altre opzioni:
-# text=» 
-# text=λ 
+# text=»
+# text=λ
 # text=/
 ```
 
@@ -132,7 +132,7 @@ selection-foreground=21222cff
 border=bd93f9ff
 
 [prompt]
-text= 
+text=
 
 [border]
 width=2
@@ -201,7 +201,7 @@ selection-foreground=282828ff
 border=d79921ff
 
 [prompt]
-text=» 
+text=»
 
 [border]
 width=3
@@ -236,7 +236,7 @@ selection-foreground=1e1e2eff
 border=f38ba8ff
 
 [prompt]
-text= 
+text=
 
 [border]
 width=2
@@ -393,7 +393,7 @@ selection-foreground=21222cff
 border=bd93f9ff
 
 [prompt]
-text= 
+text=
 
 [border]
 width=2
