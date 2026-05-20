@@ -22,6 +22,15 @@
   # Nota: Se in futuro vorrai compilare i tuoi kernel custom o applicare patch (es. Bore)
   # potrai farlo dichiarativamente qui usando boot.kernelPackages.
 
+  # Abilita il demone per il montaggio automatico dei dischi (richiesto da udisksctl)
+  services.udisks2.enable = true;
+
+  # Abilita il provider di geolocalizzazione di sistema
+  services.geoclue2.enable = true;
+
+  # Supporto per i file system più comuni sui dischi esterni
+  boot.supportedFilesystems = [ "ntfs" "vfat" "exfat" "ext4" ];
+
   # --- RETE E LOCALIZZAZIONE ---
   networking.hostName = "lynx"; # Il tuo hostname originale
   networking.networkmanager.enable = true;
