@@ -13,7 +13,7 @@ case "$1" in
     update)
         if [ "$OS" = "nixos" ]; then
             # Aggiorna il Flake ed esegue il rebuild su Kitty
-            kitty --hold bash -c "cd ~/myconfig-nix && nix flake update && sudo nixos-rebuild switch --flake .#lynx"
+            kitty --hold bash -c "cd ~/myconfig-nix && sudo nix flake update && sudo nixos-rebuild switch --flake .#lynx"
         elif [ "$OS" = "debian" ] || [ "$OS" = "ubuntu" ]; then
             kitty bash -c "sudo apt-get update && sudo apt-get upgrade -y"
         fi
