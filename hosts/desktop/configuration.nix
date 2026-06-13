@@ -46,6 +46,20 @@
 
   time.timeZone = "Europe/Rome";
   i18n.defaultLocale = "it_IT.UTF-8";
+  i18n.extraLocaleSettings = {
+    LC_ADDRESS = "it_IT.UTF-8";
+    LC_IDENTIFICATION = "it_IT.UTF-8";
+    LC_MEASUREMENT = "it_IT.UTF-8";
+    LC_MONETARY = "it_IT.UTF-8";
+    LC_NAME = "it_IT.UTF-8";
+    LC_NUMERIC = "it_IT.UTF-8";
+    LC_PAPER = "it_IT.UTF-8";
+    LC_TELEPHONE = "it_IT.UTF-8";
+    LC_TIME = "it_IT.UTF-8";
+  };
+
+  # Variabile per app Electron/Chromium su Wayland (Ozone)
+  environment.sessionVariables.NIXOS_OZONE_WL = "1";
 
   # Configurazione universale della tastiera (Sistema, TTY e Wayland)
   services.xserver.xkb = {
@@ -63,6 +77,7 @@
     isNormalUser = true;
     extraGroups = [ "networkmanager" "wheel" "video" "audio" "kvm" ];
     shell = pkgs.bash;
+    packages = with pkgs; [ thunderbird ];
   };
 
   # --- INTERFACCIA GRAFICA & COMPOSITOR ---
@@ -76,6 +91,16 @@
   # --- STRUMENTI DI MONITORAGGIO HARDWARE & AUDIO ---
   services.upower.enable = true; # Ottimizza la lettura dello stato energetico per Waybar/Battery
   security.polkit.enable = true; # Necessario per l'elevazione dei privilegi nelle sessioni Wayland
+
+  # Audio via PipeWire (rimpiazza PulseAudio). Necessario per wpctl/wireplumber
+  # usati dai keybind di niri e dal modulo pulseaudio di Waybar.
+  services.pulseaudio.enable = false;
+  services.pipewire = {
+    enable = true;
+    alsa.enable = true;
+    alsa.support32Bit = true;
+    pulse.enable = true;
+  };
 
   # --- AUTOMAZIONE UDEV PER PIPELINE BACKUP HDD ---
   # Questa regola intercetta l'inserimento di qualsiasi disco fisso esterno.
@@ -120,11 +145,51 @@
     coreutils
   ];
 
+  # --- SERVIZI & PROGRAMMI DI SISTEMA ---
+  # Portali XDG per Wayland (screencast, file chooser). niri riavvia
+  # xdg-desktop-portal-gtk all'avvio, quindi includiamo sia gnome che gtk.
+  xdg.portal = {
+    enable = true;
+    extraPortals = with pkgs; [
+      xdg-desktop-portal-gnome
+      xdg-desktop-portal-gtk
+    ];
+  };
+
+  # Firefox gestito a livello di sistema (oltre al binario nei systemPackages)
+  programs.firefox.enable = true;
+
+  # nix-ld: permette di eseguire binari dinamici non-Nix (toolchain esterne, ecc.)
+  programs.nix-ld.enable = true;
+  programs.nix-ld.libraries = with pkgs; [
+    nspr nss glib gtk3 atk at-spi2-atk cairo pango gdk-pixbuf
+    xorg.libX11 xorg.libXcomposite xorg.libXdamage xorg.libXext
+    xorg.libXfixes xorg.libXi xorg.libXrandr xorg.libXrender
+    xorg.libXtst xorg.libXScrnSaver alsa-lib mesa expat dbus
+    libdrm libxkbcommon systemd
+  ];
+
+  # Agente GnuPG con supporto SSH
+  programs.gnupg.agent = {
+    enable = true;
+    enableSSHSupport = true;
+  };
+
+  # Stampa (CUPS) e accesso remoto SSH
+  services.printing.enable = true;
+  services.openssh.enable = true;
+
+  # Porte aperte (es. Ollama 11434, dev server 3000/8080)
+  networking.firewall.allowedTCPPorts = [ 11434 3000 8080 ];
+
   # --- AMBIENTE DI SICUREZZA ---
   # Abilitiamo le configurazioni minime per evitare vulnerabilità macroscopiche
   security.rtkit.enable = true; # Permette a Pipewire/Wireplumber di acquisire priorità in tempo reale
 
   system.stateVersion = "24.05"; # Mantiene la compatibilità con lo stato iniziale dell'installazione
+
+  # Consenti pacchetti unfree (es. driver, alcune app)
+  nixpkgs.config.allowUnfree = true;
 
     # --- OTTIMIZZAZIONE E PULIZIA AUTOMATICA DEL SISTEMA ---
   nix.settings.auto-optimise-store = true; # Rileva i file duplicati e crea hardlink per risparmiare spazio

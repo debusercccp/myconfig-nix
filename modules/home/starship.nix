@@ -5,7 +5,7 @@
     package = pkgs.starship;
 
     settings = {
-      format = "$time $username$hostname$directory$git_branch$line_break$character";
+      format = "$time$username$hostname$directory$git_branch$git_status$rust$python$line_break$character";
 
       time = {
         disabled = false;
@@ -35,7 +35,6 @@
       };
 
       directory = {
-        truncation_length = 3;
         format = "[$path]($style) ";
         style = "bold yellow";
         home_symbol = "~";
@@ -43,14 +42,33 @@
 
       git_branch = {
         symbol = "git:";
-        format = "[$symbol$branch]($style) ";
+        format = "[$symbol$branch]($style)";
         style = "bold cyan";
       };
 
       git_status = {
-        format = "([$all_status]($style) )";
+        format = "([$all_status]($style)) ";
         style = "bold red";
+        ahead = "⇡\${count}";
+        diverged = "⇡\${ahead_count}⇣\${behind_count}";
+        behind = "⇣\${count}";
         modified = "!";
+        staged = "+";
+      };
+
+      rust = {
+        symbol = " ";
+        style = "bold red";
+        format = "[$symbol($version )]($style)";
+      };
+
+      python = {
+        symbol = " ";
+        style = "bold blue";
+        format = "[$symbol($version )(\\($virtualenv\\) )]($style)";
+        pyenv_version_name = true;
+        detect_extensions = [ ];
+        detect_files = [ "requirements.txt" "pyproject.toml" "Pipfile" "setup.py" "poetry.lock" ];
       };
     };
   };

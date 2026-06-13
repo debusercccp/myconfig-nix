@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import json
+import time
 from datetime import datetime
 import requests
 
@@ -57,17 +58,30 @@ WEATHER_CODES = {
 
 data = {}
 
-# Richiesta JSON a wttr.in (Località impostata su Roma, cambiala se preferisci)
-try:
-    weather = requests.get("https://wttr.in/Bari?format=j1").json()
-except Exception as e:
+# Tentativi di connessione all'avvio (gestisce la race condition della rete)
+weather = None
+for _ in range(5):
+    try:
+        response = requests.get("https://wttr.in/Bari?format=j1", timeout=5)
+        if response.status_code == 200:
+            weather = response.json()
+            # Verifica strutturale minima per evitare KeyError successivi
+            if "current_condition" in weather and "weather" in weather:
+                break
+    except Exception:
+        pass
+    time.sleep(2)
+
+# Se dopo 5 tentativi fallisce, restituisce l'output di errore senza crashare
+if not weather:
     data["text"] = "󰖪 --°"
-    data["tooltip"] = f"Errore di connessione: {str(e)}"
+    data["tooltip"] = "Impossibile connettersi a wttr.in (Rete non disponibile)"
     print(json.dumps(data))
-    exit(1)
+    exit(0)  # Evita di stampare lo stacktrace in Waybar
 
 
 def format_time(time_str):
+    # wttr.in restituisce i tempi come "0", "300", "1200", etc.
     return time_str.replace("00", "").zfill(2)
 
 
@@ -77,20 +91,20 @@ def format_temp(temp):
 
 def format_chances(hour_data):
     chances = {
-        "chanceoffog": "Fog",
-        "chanceoffrost": "Frost",
-        "chanceofovercast": "Overcast",
-        "chanceofrain": "Rain",
-        "chanceofsnow": "Snow",
-        "chanceofsunshine": "Sunshine",
-        "chanceofthunder": "Thunder",
-        "chanceofwindy": "Wind",
+        "chanceoffog": "Nebbia",
+        "chanceoffrost": "Ghiaccio",
+        "chanceofovercast": "Nuvoloso",
+        "chanceofrain": "Pioggia",
+        "chanceofsnow": "Neve",
+        "chanceofsunshine": "Soleggiato",
+        "chanceofthunder": "Fulmini",
+        "chanceofwindy": "Vento",
     }
 
     conditions = []
-    for event in chances.keys():
-        if int(hour_data[event]) > 0:
-            conditions.append(f"{chances[event]} {hour_data[event]}%")
+    for event, label in chances.items():
+        if event in hour_data and int(hour_data[event]) > 0:
+            conditions.append(f"{label} {hour_data[event]}%")
     return ", ".join(conditions)
 
 
@@ -103,36 +117,41 @@ if 0 < tempint < 10:
 
 # Output principale sulla barra di Waybar
 data["text"] = (
-    f"{WEATHER_CODES[current['weatherCode']]} {extrachar}{current['FeelsLikeC']}°"
+    f"{WEATHER_CODES.get(current['weatherCode'], '')} {extrachar}{current['FeelsLikeC']}°"
 )
 
 # Tooltip (Finestra pop-up al passaggio del mouse)
 data["tooltip"] = f"<b>{current['weatherDesc'][0]['value']} {current['temp_C']}°</b>\n"
-data["tooltip"] += f"Feels like: {current['FeelsLikeC']}°\n"
-data["tooltip"] += f"Wind: {current['windspeedKmph']} Km/h\n"
-data["tooltip"] += f"Humidity: {current['humidity']}%\n"
+data["tooltip"] += f"Percepiti: {current['FeelsLikeC']}°\n"
+data["tooltip"] += f"Vento: {current['windspeedKmph']} Km/h\n"
+data["tooltip"] += f"Umidità: {current['humidity']}%\n"
 
 for i, day in enumerate(weather["weather"]):
     data["tooltip"] += "\n<b>"
     if i == 0:
-        data["tooltip"] += "Today, "
+        data["tooltip"] += "Oggi, "
     elif i == 1:
-        data["tooltip"] += "Tomorrow, "
+        data["tooltip"] += "Domani, "
 
     data["tooltip"] += f"{day['date']}</b>\n"
     data["tooltip"] += f" {day['maxtempC']}°  {day['mintempC']}° "
-    data[
-        "tooltip"
-    ] += f" {day['astronomy'][0]['sunrise']}  {day['astronomy'][0]['sunset']}\n"
+    data["tooltip"] += (
+        f" {day['astronomy'][0]['sunrise']}  {day['astronomy'][0]['sunset']}\n"
+    )
 
-    for hour in day["hourly"]:
-        hour_time = int(format_time(hour["time"]))
+    # Corretto: wttr.in usa la "h" minuscola ('hourly')
+    hourly_data = day.get("hourly", day.get("Hourly", []))
+
+    for hour in hourly_data:
+        # Corretto: la chiave corretta nel JSON standard di wttr.in è 'time', non 'Tempo'
+        raw_time = hour.get("time", hour.get("Tempo", "0"))
+        hour_time = int(format_time(raw_time))
+
         if i == 0 and hour_time < datetime.now().hour - 2:
             continue
 
-        # FIX: Sostituito FeelsLikeF con FeelsLikeC per coerenza con il sistema metrico europeo
         data["tooltip"] += (
-            f"{str(hour_time).zfill(2)}:00 {WEATHER_CODES[hour['weatherCode']]} "
+            f"{str(hour_time).zfill(2)}:00 {WEATHER_CODES.get(hour['weatherCode'], '')} "
             f"{format_temp(hour['FeelsLikeC'])} {hour['weatherDesc'][0]['value']}"
         )
 

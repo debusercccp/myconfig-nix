@@ -1,40 +1,63 @@
-// =====================================================================
-// Niri Config - Static Setup (No Matugen)
-// =====================================================================
-
-input {
-    keyboard {
-        xkb {
-            layout "gb"
-        }
-    }
-}
+/* ================================================
+   Niri Config
+   ================================================ */
 
 hotkey-overlay {
     skip-at-startup
 }
 
+/* Cursore: tema e dimensione espliciti */
+cursor {
+    xcursor-theme "Adwaita"
+    xcursor-size 24
+}
+
+/* Su kernel modificati il piano cursore KMS (i915) può non renderizzare:
+   il cursore si muove ma resta invisibile. disable-cursor-plane forza
+   niri a compositare il cursore via software. */
+debug {
+    disable-cursor-plane
+}
+
+include "colors.kdl"
+
 layout {
+    // Spazio tra le finestre
+    gaps 16
+
+    background-color "transparent"
+
+    // Il bordo della finestra attiva
     focus-ring {
         width 4
-        active-color "#7aa2f7"   // Tokyo Night: Blu acceso per la finestra attiva
-        inactive-color "#24283b" // Tokyo Night: Sfondo scuro per le finestre inattive
+        // Qui usiamo la variabile che Matugen scrive in colors.kdl
+        // Se colors.kdl contiene già il blocco layout, questo include basta!
     }
 
+    // Il bordo delle finestre non attive
     border {
-        width 0
+        width 1
+        inactive-color "#44475a" // Colore fisso Dracula per le finestre inattive
     }
 }
+
+// Assegna swaybg al livello del backdrop
+layer-rule {
+    match namespace="^wallpaper$"
+    place-within-backdrop true
+}
+
+layer-rule {
+    match namespace="conky_namespace"
+    // Nessun nodo aggiuntivo necessario per v26.04
+    // open-on-output serve se hai multi-monitor
+}
+
 environment {
     GDK_BACKEND "wayland"
     QT_QPA_PLATFORM "wayland"
     XDG_CURRENT_DESKTOP "niri"
     XDG_SESSION_TYPE "wayland"
-}
-
-// Sintassi corretta nativa di Niri:
-output "eDP-1" {
-    // Qui andranno eventuali impostazioni come: scale 1.0
 }
 
 /* ================================================
@@ -67,16 +90,41 @@ window-rule {
     geometry-corner-radius 12
 }
 
+/* Conky - Impedisce a Niri di inserirlo nelle colonne di scorrimento */
+window-rule {
+    match app-id="conky"
+    open-floating true
+}
+
 /* ================================================
    STARTUP COMMANDS - Avvio servizi e UI
    ================================================ */
 
+spawn-at-startup "bash" "-c" "systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_TYPE"
+
 /* DBus environment variables per XDG portal */
 spawn-at-startup "bash" "-c" "dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_TYPE DISPLAY > /dev/null 2>&1"
 
-spawn-at-startup "batteryMonitor"
+/* Riavvia i servizi XDG desktop portal */
+spawn-at-startup "bash" "-c" "sleep 3 && systemctl --user restart xdg-desktop-portal-gtk.service && sleep 1 && systemctl --user restart xdg-desktop-portal.service > /dev/null 2>&1"
 
-spawn-at-startup "nightlight.sh" "toggle"
+/* NB (NixOS): Waybar, Dunst e swaybg NON vengono avviati qui.
+   Sono gestiti da systemd via home-manager:
+     - programs.waybar.systemd.enable  (niri.nix)
+     - services.dunst.enable           (niri.nix / dunst.nix)
+     - systemd.user.services.swaybg    (niri.nix, usa blacklodge.jpg)
+   Avviarli anche da qui causerebbe processi duplicati. */
+
+/* Nightlight (filtro luce blu) */
+spawn-at-startup "/home/noya/.config/waybar/scripts/nightlight.sh" "toggle"
+
+/* Applet Bluetooth nel system tray */
+spawn-at-startup "blueman-applet"
+
+// Salva la history del copia-incolla
+spawn-at-startup "wl-paste" "--watch" "cliphist" "store"
+
+spawn-at-startup "bash" "-c" "sleep 5 && conky -c ~/.config/conky/conky.conf"
 
 /* ================================================
    KEYBINDINGS - Scorciatoie da tastiera
@@ -107,6 +155,9 @@ binds {
     Mod+V { switch-focus-between-floating-and-tiling; }
     Mod+Shift+V { toggle-window-floating; }
 
+    // Premi Mod+A per aprire la lista degli appunti e incollare
+    Mod+A { spawn "bash" "-c" "cliphist list | fuzzel --dmenu | cliphist decode | wl-copy"; }
+
     /* ---- Workspace navigation ---- */
     Mod+Page_Down { focus-workspace-down; }
     Mod+Page_Up   { focus-workspace-up; }
@@ -126,17 +177,43 @@ binds {
     "Mod+Tab" { toggle-overview; }
     "Mod+Shift+Slash" { show-hotkey-overlay; }
 
-    /* ---- Luce Notturna (Controlli manuali rapidi) ---- */
-    "Mod+Shift+N" { spawn "nightlight.sh" "toggle"; }
-
     /* ---- Brightness control (Fn keys) ---- */
     "XF86MonBrightnessUp"   { spawn "brightnessctl" "set" "5%+"; }
     "XF86MonBrightnessDown" { spawn "brightnessctl" "set" "5%-" "-n" "1"; }
 
     /* ---- File manager ---- */
-    Mod+E { spawn "dolphin"; }
+    "Mod+E" { spawn "dolphin"; }
 
     XF86AudioRaiseVolume { spawn "wpctl" "set-volume" "-l" "1.0" "@DEFAULT_AUDIO_SINK@" "0.05+"; }
     XF86AudioLowerVolume { spawn "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "0.05-"; }
     XF86AudioMute allow-when-locked=true { spawn "wpctl" "set-mute" "@DEFAULT_AUDIO_SINK@" "toggle"; }
+    XF86HomePage { spawn "firefox"; }
+    XF86Calculator { spawn "galculator"; }
+    "Mod+L" allow-when-locked=true { spawn "swaylock"; }
+    XF86MyComputer { spawn "dolphin" "/home/noya/MiniSSD"; }
+
+    Print { spawn "sh" "-c" "grim -g \"$(slurp)\" ~/Immagini/Screenshots/$(date +%Y-%m-%d_%H-%M-%S).png"; }
+
+}
+
+input {
+    keyboard {
+        xkb {
+            layout "it"
+            // layout "gb" // Layout UK di scorta
+        }
+        repeat-delay 300
+        repeat-rate 40
+    }
+
+    touchpad {
+        tap // Abilita il tocco leggero per cliccare
+        dwt // Disabilita il touchpad mentre scrivi (Disable-While-Typing)
+
+        // natural-scroll // Decommenta se preferisci lo scorrimento in stile smartphone
+    }
+
+    trackball {
+        // accel-profile "adaptive"
+    }
 }

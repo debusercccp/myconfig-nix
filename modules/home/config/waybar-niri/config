@@ -21,7 +21,7 @@
 
     "modules-right": [
         "custom/mounts",
-        "custom/backup",
+        "custom/backup", // L'ho aggiunto qui così lo vedi quando parte!
         "tray",
         "custom/updates",
         "temperature",
@@ -32,7 +32,6 @@
         "bluetooth",
         "pulseaudio#microphone",
         "pulseaudio",
-        "custom/weather",
         "battery",
         "network",
         "custom/power"
@@ -196,18 +195,20 @@
 
     "custom/updates": {
         "format": "{}",
+        // NixOS-aware: update-sys è installato in ~/.local/bin (scripts.nix).
+        // Rileva la distro, mostra lo stato e (al click) lancia il rebuild del flake.
         "exec": "update-sys",
+        "return-type": "json",
         "interval": 3600,
-        "on-click": "update-sys update",
-        "return-type": "json"
+        "on-click": "update-sys update"
     },
 
     "custom/mounts": {
         "format": "{}",
-        "exec": "mounts.sh waybar",
+        "exec": "~/.config/waybar/scripts/mounts.sh waybar",
         "return-type": "json",
         "interval": 10,
-        "on-click": "mounts.sh toggle",
+        "on-click": "~/.config/waybar/scripts/mounts.sh toggle",
         "tooltip": true
     },
 
@@ -220,24 +221,19 @@
     "custom/nightlight": {
         "format": "{}",
         "return-type": "json",
-        "interval": 2,
-        "exec": "nightlight.sh status",
-        "on-click": "nightlight.sh toggle"
+        // Lo script è in ~/.config/waybar/scripts (xdg.configFile in niri.nix)
+        // ed è anche su PATH in ~/.local/bin (scripts.nix). Usa systemctl --user gammastep.
+        "exec": "~/.config/waybar/scripts/nightlight.sh status",
+        "on-click": "~/.config/waybar/scripts/nightlight.sh toggle",
+        "interval": 5
     },
 
     "bluetooth": {
         "format": "󰂯",
         "format-disabled": "󰂲",
         "format-connected": "󰂱 {num_connections}",
+        // rfkill è su PATH grazie a util-linux (scripts.nix); niente /usr/sbin su NixOS
         "on-click": "rfkill toggle bluetooth",
         "on-click-right": "blueman-manager"
-    },
-
-    "custom/weather": {
-        "format": "{}",
-        "tooltip": true,
-        "interval": 3600,
-        "exec": "~/.local/bin/wttr.py",
-        "return-type": "json"
     }
 }

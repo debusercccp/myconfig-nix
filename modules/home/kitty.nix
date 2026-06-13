@@ -5,7 +5,7 @@
     enable = true;
 
     font = {
-      name = "ShureTechMono Nerd Font";
+      name = "JetBrainsMono Nerd Font";
       size = 11;
     };
 

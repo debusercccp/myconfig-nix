@@ -12,6 +12,8 @@
     ./formatters.nix
     ./starship.nix
     ./precommit.nix
+    ./conky.nix
+    ./swaylock.nix
   ];
   home.packages = with pkgs; [
     git
