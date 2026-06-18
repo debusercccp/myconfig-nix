@@ -17,6 +17,10 @@
     swaylock          # Blocco schermo (Mod+L)
     galculator        # Calcolatrice (XF86Calculator)
     conky             # Widget desktop di sistema
+    swayidle          # Gestione idle (blocco/spegnimento monitor)
+    playerctl         # Controlli multimediali (XF86Audio Play/Pause/Next/Prev)
+    xwayland-satellite # Server Xwayland on-demand (app X11 su :0)
+    kdePackages.polkit-kde-agent-1 # Agente PolicyKit (prompt grafici auth)
 
     pyright
     nodejs
