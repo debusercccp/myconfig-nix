@@ -10,8 +10,15 @@
     util-linux
     blueman
 
-    # Python con la libreria requests inclusa isolata per il meteo
-    (python3.withPackages (ps: with ps; [ requests ]))
+    # Python con le librerie usate dagli script:
+    #  - requests: meteo (wttr.py)
+    #  - icalendar / recurring-ical-events: calendario Google via iCal
+    #    (cal-sync.py; sostituisce il virtualenv usato su Arch/Debian)
+    (python3.withPackages (ps: [
+      ps.requests
+      ps.icalendar
+      ps."recurring-ical-events"
+    ]))
   ];
 
   # Script Batteria

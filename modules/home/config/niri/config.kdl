@@ -30,8 +30,7 @@ layout {
     // Il bordo della finestra attiva
     focus-ring {
         width 4
-        // Qui usiamo la variabile che Matugen scrive in colors.kdl
-        // Se colors.kdl contiene già il blocco layout, questo include basta!
+        // I colori della focus-ring arrivano da colors.kdl (incluso da config.kdl)
     }
 
     // Il bordo delle finestre non attive
@@ -107,6 +106,17 @@ window-rule {
     open-floating true
     default-column-width { fixed 720; }
     default-window-height { fixed 480; }
+}
+
+/* Calendario TUI (click sull'icona calendario in Waybar) - flottante centrato */
+window-rule {
+    match app-id="cal-tui"
+    open-floating true
+    default-column-width { proportion 0.6; }
+    default-window-height { proportion 0.75; }
+    geometry-corner-radius 12
+    clip-to-geometry true
+    draw-border-with-background false
 }
 
 /* ================================================

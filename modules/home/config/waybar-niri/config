@@ -16,7 +16,8 @@
     ],
 
     "modules-center": [
-        "clock"
+        "clock",
+        "custom/calendar"
     ],
 
     "modules-right": [
@@ -32,6 +33,7 @@
         "bluetooth",
         "pulseaudio#microphone",
         "pulseaudio",
+        "custom/weather",
         "battery",
         "network",
         "custom/power"
@@ -78,7 +80,20 @@
         "timezone": "Europe/Rome",
         "format": "  {:%H:%M}",
         "tooltip": true,
-        "tooltip-format": "  {:%A, %d %B %Y}\n<tt><small>{calendar}</small></tt>"
+        "tooltip-format": "  {:%A, %d %B %Y}"
+    },
+
+    "custom/calendar": {
+        "format": "{}",
+        "return-type": "json",
+        "exec": "~/.config/waybar/scripts/calendar.sh status",
+        "interval": 60,
+        "on-click": "kitty --app-id cal-tui --config ~/.config/waybar/cal-tui.conf ~/.config/waybar/scripts/cal-tui.sh",
+        "on-scroll-up": "~/.config/waybar/scripts/calendar.sh prev && pkill -RTMIN+9 waybar",
+        "on-scroll-down": "~/.config/waybar/scripts/calendar.sh next && pkill -RTMIN+9 waybar",
+        "on-click-middle": "~/.config/waybar/scripts/calendar.sh reset && pkill -RTMIN+9 waybar",
+        "signal": 9,
+        "tooltip": true
     },
 
     "cpu": {
@@ -238,5 +253,13 @@
         // rfkill è su PATH grazie a util-linux (scripts.nix); niente /usr/sbin su NixOS
         "on-click": "rfkill toggle bluetooth",
         "on-click-right": "blueman-manager"
+    },
+
+    "custom/weather": {
+        "format": "{}",
+        "tooltip": true,
+        "interval": 3600,
+        "exec": "~/.config/waybar/scripts/wttr.py",
+        "return-type": "json"
     }
 }

@@ -1,0 +1,24 @@
+# Nix build artifacts
+result
+result-*
+
+# direnv
+.direnv/
+
+# Python caches (script waybar: calendar, meteo)
+__pycache__/
+*.pyc
+.ruff_cache/
+
+# Calendario: segreto e virtualenv generato.
+# calendar.conf (ICS_URL=$GCAL_ICS_URL, senza segreto) viene invece committato
+# perche' su NixOS ~/.config/waybar e' un symlink read-only verso lo store.
+calendar.env
+.calvenv/
+
+# Secrets — niente CSV di password
+*.csv
+
+# Editor / temp
+*.swp
+*~
