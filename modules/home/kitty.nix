@@ -12,7 +12,7 @@
     settings = {
       # --- Impostazioni di Opacità e Trasparenza ---
       dynamic_background_opacity = "no";
-      background_opacity = "0.90";
+      background_opacity = "0.6";
 
       # --- Fix per il cambio colore al focus ---
       inactive_text_alpha = "1.0";
