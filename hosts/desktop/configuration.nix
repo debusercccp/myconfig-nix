@@ -103,12 +103,47 @@
   };
 
   # --- AUTOMAZIONE UDEV PER PIPELINE BACKUP HDD ---
-  # Questa regola intercetta l'inserimento di qualsiasi disco fisso esterno.
-  # Se l'UUID corrisponde ai tuoi dischi, chiama l'unita systemd dell'utente "noya"
-  # passando l'UUID rilevato da udev ($env{ID_FS_UUID}) come argomento.
+  # All'inserimento di uno dei dischi di backup noti (match per UUID), udev attiva
+  # il servizio di sistema template backup-hdd@<UUID>.service (device activation via
+  # SYSTEMD_WANTS), che esegue backup_hdd.sh come utente noya. Regola extra:
+  # l'adattatore SATA-USB JMicron JMS578 è escluso dall'autosuspend USB
+  # (mitigazione dei distacchi HDD).
   services.udev.extraRules = ''
-    ACTION=="add", SUBSYSTEM=="block", ENV{ID_FS_UUID}=="?*", RUN+="${pkgs.systemd}/bin/systemctl --user --machine=noya@.host start backupHDD@$env{ID_FS_UUID}.service"
+    # Adattatore SATA-USB JMicron JMS578: niente autosuspend (mitigazione distacchi HDD)
+    ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="152d", ATTR{idProduct}=="0578", TEST=="power/control", ATTR{power/control}="on"
+
+    # Disco A (2 TB, 8476…)
+    ACTION=="add", SUBSYSTEM=="block", ENV{DEVTYPE}=="partition", ENV{ID_FS_UUID}=="84763b78-b0dc-4593-ba3b-cebc88d54dda", TAG+="systemd", ENV{SYSTEMD_WANTS}="backup-hdd@84763b78-b0dc-4593-ba3b-cebc88d54dda.service"
+
+    # Disco B (500 GB, 6550…)
+    ACTION=="add", SUBSYSTEM=="block", ENV{DEVTYPE}=="partition", ENV{ID_FS_UUID}=="65505cfd-073a-4f4c-8f8f-cbbec134f2aa", TAG+="systemd", ENV{SYSTEMD_WANTS}="backup-hdd@65505cfd-073a-4f4c-8f8f-cbbec134f2aa.service"
+
+    # Disco C (WD 500 GB, d8c9…)
+    ACTION=="add", SUBSYSTEM=="block", ENV{DEVTYPE}=="partition", ENV{ID_FS_UUID}=="d8c9f8b2-d093-4751-a5c9-469c49361fb4", TAG+="systemd", ENV{SYSTEMD_WANTS}="backup-hdd@d8c9f8b2-d093-4751-a5c9-469c49361fb4.service"
   '';
+
+  # Servizio template della pipeline di backup: eseguito come noya con priorità I/O
+  # bassa (ionice best-effort classe 2, livello 7). L'istanza %i è l'UUID passato da
+  # udev. `path` fornisce tutti i comandi usati da backup_hdd.sh; lo script è preso
+  # verbatim dallo store Nix (sync da myconfig/backupHDD/backup_hdd.sh).
+  systemd.services."backup-hdd@" = {
+    description = "Pipeline Backup HDD USB";
+    path = with pkgs; [
+      bash
+      coreutils
+      util-linux
+      gawk
+      gnugrep
+      procps
+      rsync
+      libnotify
+    ];
+    serviceConfig = {
+      Type = "oneshot";
+      User = "noya";
+      ExecStart = "${pkgs.util-linux}/bin/ionice -c 2 -n 7 ${pkgs.bash}/bin/bash ${./backup_hdd.sh} %i";
+    };
+  };
 
   # --- GESTIONE DEI FONT DI SISTEMA ---
   fonts.packages = with pkgs; [

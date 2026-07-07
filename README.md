@@ -309,6 +309,60 @@ Script personalizzati salvati in `~/.local/bin`:
 - `init-precommit` - Inizializza pre-commit nel repo
 - `backup-ssd` - Script backup custom
 
+### 8. Pipeline Backup HDD (device-activated)
+
+Backup automatico su HDD/USB esterno, dichiarato interamente in
+`hosts/desktop/configuration.nix` (nessuna installazione manuale in `/usr/local/bin`):
+
+- **Trigger udev**: all'inserimento di uno dei dischi noti (match per UUID) udev
+  attiva `backup-hdd@<UUID>.service` via `SYSTEMD_WANTS` (device activation).
+- **Servizio di sistema** `backup-hdd@.service`: esegue `backup_hdd.sh <UUID>` come
+  utente `noya`, con `ionice` best-effort (classe 2, livello 7). Lo script è preso
+  verbatim dallo store Nix (`hosts/desktop/backup_hdd.sh`, sync da
+  `myconfig/backupHDD/backup_hdd.sh`); il `PATH` del servizio fornisce rsync,
+  util-linux, libnotify, ecc.
+- **Cosa fa lo script**: mirror della home su `backup_automatico/` (rsync
+  `--delete`), archiviazione incrementale di datasets/modelli/noya_packs, link
+  simbolici di comodo nella home, `sync -f` finale e notifica desktop.
+- **Adattatore JMicron JMS578** (`152d:0578`): escluso dall'autosuspend USB via
+  regola udev, per mitigare i distacchi dell'HDD durante il backup.
+- **Barra di avanzamento in Waybar**: `backup_hdd.sh` scrive il progresso in
+  `/tmp/backup_hdd_progress`(+`.fase`); il modulo `custom/backup` lo legge con
+  `scripts/backup-status.sh` mostrando percentuale e barra `█░` nel tooltip.
+
+Per aggiungere un nuovo disco: aggiungi una regola udev con il suo UUID in
+`configuration.nix` (l'aggiunta di un case in `backup_hdd.sh` serve solo per il
+nome mostrato nelle notifiche).
+
+Comandi utili:
+
+```bash
+# Avvio manuale (sostituisci l'UUID)
+sudo systemctl start backup-hdd@84763b78-b0dc-4593-ba3b-cebc88d54dda.service
+# Log del servizio
+journalctl -u "backup-hdd@*" -f
+# Log di debug dello script
+cat /tmp/pipeline_debug.log
+```
+
+#### Note
+
+- **Build-check da fare sulla macchina NixOS**: questa pipeline non è stata
+  verificata con `nix`/`nixos-rebuild` (non disponibili nell'ambiente in cui è stata
+  scritta). Applica e testa con:
+
+  ```bash
+  sudo nixos-rebuild switch --flake ~/dotfiles/myconfig-nix#lynx
+  # test manuale:
+  sudo systemctl start backup-hdd@84763b78-b0dc-4593-ba3b-cebc88d54dda.service
+  journalctl -u "backup-hdd@*" -f
+  ```
+
+- **`notify-send` richiede la sessione utente attiva (D-Bus)**: lo script imposta da
+  sé `DBUS_SESSION_BUS_ADDRESS=/run/user/1000/bus`, identico a `myconfig`. Il backup
+  rsync funziona comunque anche senza sessione grafica attiva; solo le notifiche
+  desktop no.
+
 ---
 
 ## Aggiornamenti
