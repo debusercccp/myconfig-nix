@@ -44,6 +44,11 @@ myconfig-nix/
 
 ### Setup
 
+> **Scorciatoia**: dopo aver clonato il repo puoi eseguire `./install.sh` (abilita i
+> flake, imposta l'hostname `lynx` e lancia `nixos-rebuild switch --flake .#lynx`).
+> Uso: `./install.sh [HOSTNAME] [AZIONE]` (default `lynx switch`). I passi manuali
+> equivalenti sono qui sotto.
+
 ```bash
 # 1. Clona il repo nella posizione corretta
 sudo mkdir -p /etc/nixos
