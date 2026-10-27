@@ -21,14 +21,12 @@
     ],
 
     "modules-right": [
-        "custom/mounts",
-        "custom/backup",
-        "custom/updates",
         "temperature",
         "cpu",
         "memory",
         "disk",
         "custom/nightlight",
+        "custom/caffeine",
         "custom/bluetooth",
         "pulseaudio#microphone",
         "pulseaudio",
@@ -58,6 +56,15 @@
             "active": "●",
             "default": "○"
         }
+    },
+
+    "custom/caffeine": {
+        "format": "{}",
+        "return-type": "json",
+        "interval": 5,
+        "exec": "~/.config/waybar/scripts/caffeine.sh status",
+        "on-click": "~/.config/waybar/scripts/caffeine.sh toggle && pkill -RTMIN+9 waybar",
+        "tooltip": true
     },
 
     "niri/window": {
@@ -128,7 +135,8 @@
     },
 
     "temperature": {
-        "thermal-zone": 1,
+        "hwmon-path-abs": "/sys/devices/platform/coretemp.0/hwmon",
+        "input-filename": "temp1_input",
         "format": "󰔏",
         "format-alt-click": "click-right",
         "format-alt": "󰔏 {temperatureC}°C",
@@ -202,45 +210,18 @@
         "tooltip-format-wifi": "󰤨 {essid} ({signalStrength}%)\n󰩟 {ipaddr}/{cidr}\n Click: reti disponibili",
         "tooltip-format-ethernet": "󰈀 {ifname}\n󰩟 {ipaddr}/{cidr}\n Click: reti disponibili",
         "tooltip-format-disconnected": "Disconnesso\n Click: reti disponibili",
+        // NixOS usa NetworkManager (non iwd/impala come su Arch): menu fuzzel via nmcli
         "on-click": "python3 ~/.config/waybar/wifi-menu.py",
         "on-click-right": "nmcli device wifi rescan",
         "max-length": 50
     },
 
-    "custom/updates": {
-        "format": "{}",
-        // NixOS-aware: update-sys è installato in ~/.local/bin (scripts.nix).
-        // Rileva la distro, mostra lo stato e (al click) lancia il rebuild del flake.
-        "exec": "update-sys",
-        "return-type": "json",
-        "interval": 3600,
-        "on-click": "update-sys update"
-    },
-
-    "custom/mounts": {
-        "format": "{}",
-        "exec": "~/.config/waybar/scripts/mounts.sh waybar",
-        "return-type": "json",
-        "interval": 10,
-        "on-click": "~/.config/waybar/scripts/mounts.sh toggle",
-        "tooltip": true
-    },
-
-    "custom/backup": {
-        "exec": "~/.config/waybar/scripts/backup-status.sh",
-        "return-type": "json",
-        "interval": 2,
-        "tooltip": true
-    },
-
     "custom/nightlight": {
         "format": "{}",
         "return-type": "json",
-        // Lo script è in ~/.config/waybar/scripts (xdg.configFile in niri.nix)
-        // ed è anche su PATH in ~/.local/bin (scripts.nix). Usa systemctl --user gammastep.
-        "exec": "~/.config/waybar/scripts/nightlight.sh status",
-        "on-click": "~/.config/waybar/scripts/nightlight.sh toggle",
-        "interval": 5
+        "interval": 2,
+        "exec": "/home/noya/.config/waybar/scripts/nightlight.sh status",
+        "on-click": "/home/noya/.config/waybar/scripts/nightlight.sh toggle"
     },
 
     "custom/bluetooth": {
@@ -256,7 +237,7 @@
         "format": "{}",
         "tooltip": true,
         "interval": 3600,
-        "exec": "~/.config/waybar/scripts/wttr.py",
+        "exec": "/home/noya/.config/waybar/scripts/wttr.py",
         "return-type": "json",
         "on-click": "fuzzel --dmenu --prompt 'Meteo  ' --width 92 --lines 14 < ~/.cache/waybar-weather-detail.txt"
     }

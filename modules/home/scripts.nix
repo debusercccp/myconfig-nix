@@ -9,6 +9,7 @@
     rsync
     util-linux
     blueman
+    psmisc            # killall (post_hook di matugen, nightlight)
 
     # Python con le librerie usate dagli script:
     #  - requests: meteo (wttr.py)
@@ -55,6 +56,18 @@
   home.file.".local/bin/mounts.sh" = {
     executable = true;
     source = ./config/waybar-niri/scripts/mounts.sh;
+  };
+
+  # Cambio tema: sfondo (awww) + palette (matugen)
+  home.file.".local/bin/set-theme" = {
+    executable = true;
+    source = ./config/utils/set-theme;
+  };
+
+  # Duress trigger via impronta (Mod+M in niri; richiede fprintd)
+  home.file.".local/bin/fp-duress.sh" = {
+    executable = true;
+    source = ./config/utils/fp-duress.sh;
   };
 
   # Script di Aggiornamento Sistema

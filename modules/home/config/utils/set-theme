@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [ -z "${1:-}" ]; then
+    echo "Errore: Specifica il percorso del wallpaper." >&2
+    exit 1
+fi
+
+WALLPAPER=$(readlink -f "$1")
+
+if [ ! -f "$WALLPAPER" ]; then
+    echo "Errore: Il file '$WALLPAPER' non esiste." >&2
+    exit 1
+fi
+
+mkdir -p ~/.cache
+echo "$WALLPAPER" > ~/.cache/current_wallpaper
+
+# Assicura il demone attivo
+pgrep -x awww-daemon >/dev/null || awww-daemon &
+
+# Applica lo sfondo in modalità crop (fill)
+awww img "$WALLPAPER" --resize crop --transition-type wipe --transition-step 90
+
+# 3. Rigenera i colori
+matugen image "$WALLPAPER" -m dark --prefer darkness
+
+# 4. Riavvia Conky (se attivo come user service)
+if systemctl --user is-active --quiet conky.service; then
+    systemctl --user restart conky.service
+fi
+
+notify-send "Tema Aggiornato" "Sfondo e colori sincronizzati." -a "Matugen"

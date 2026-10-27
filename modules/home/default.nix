@@ -14,6 +14,7 @@
     ./precommit.nix
     ./conky.nix
     ./swaylock.nix
+    ./theme.nix
   ];
   home.packages = with pkgs; [
     git

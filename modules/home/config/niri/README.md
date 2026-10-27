@@ -12,9 +12,10 @@ a di stato) e risolvere i problemi comuni su **Debian Trixie**.
 4. [Configurazione Niri (config.kdl)](#configurazione-niri-configkdl)
 5. [Configurazione Waybar](#configurazione-waybar)
 6. [Calendario Google (Waybar + TUI)](#calendario-google-waybar--tui)
-7. [Compilare conky](#compilare-conky)
-8. [Troubleshooting Completo](#troubleshooting-completo)
-9. [Quick Start](#quick-start)
+7. [Menu Wi-Fi (Waybar + wpa\_cli)](#menu-wi-fi-waybar--wpa_cli)
+8. [Compilare conky](#compilare-conky)
+9. [Troubleshooting Completo](#troubleshooting-completo)
+10. [Quick Start](#quick-start)
 
 ---
 
@@ -69,7 +70,6 @@ sudo apt install \
   waybar \
   fuzzel \
   dunst \
-  swaybg \
   kitty \
   konsole \
   xdg-desktop-portal \
@@ -83,11 +83,14 @@ sudo apt install \
   waybar \
   fuzzel \
   dunst \
-  swaybg \
   kitty \
   xdg-desktop-portal \
   xdg-desktop-portal-gtk
 ```
+
+> **Nota sfondo:** questa configurazione usa **swww** invece di `swaybg` per il wallpaper.
+> `swww` non è (ancora) sempre presente nei repo Debian/Arch: se `apt`/`pacman` non lo trovano,
+> vedi [Installare swww](#installare-swww) più sotto.
 
 ### Supporto Grafico e Icone
 ```bash
@@ -167,15 +170,26 @@ sudo apt install \
   polkit-kde-agent-1 \
   playerctl \
   network-manager \
-  xwayland-satellite
+  xwayland-satellite \
+  caffeine \
+  caffeine-indicator
 ```
 
 **Dettagli:**
 - swayidle: gestione idle — blocca a 5 min (`swaylock -f`), spegne i monitor a 10 min, blocca prima della sospensione
 - polkit-kde-agent-1: agente PolicyKit, fornisce i prompt grafici di autenticazione (montaggio dischi, ecc.)
 - playerctl: controlli multimediali (`XF86AudioPlay/Pause/Next/Prev`)
-- network-manager: fornisce `nmtui`, richiamato dal modulo Wi-Fi di Waybar in una finestra flottante
 - xwayland-satellite: server Xwayland on-demand su `:0` per le app X11 (Niri è Wayland-puro)
+
+#OBSOLETO
+
+```
+*Nota WiFi:** se il Wi-Fi è gestito da `wpa_supplicant` direttamente (non da NetworkManager),
+il modulo `network` di Waybar usa `wifi-menu.py` + `wpa_cli` invece di `nmtui`.
+Vedi la sezione [Menu Wi-Fi (Waybar + wpa_cli)](#menu-wi-fi-waybar--wpa_cli) per il setup.
+```
+
+Per il wifi,imposta iwd (iwctl) e usa Impala, da compilare e mettere in ~/rust/impala/...
 
 **Nota:** se `xwayland-satellite` non è nei repo, compilalo da sorgente:
 
@@ -242,6 +256,27 @@ sudo apt install niri
 
 **Nota**: La versione nei repo Trixie potrebbe essere leggermente dietro la HEAD di GitHub, ma e' stabile.
 
+### Installare swww
+
+`swww` (Solid/animated Wayland WWallpaper and shader daemon) sostituisce `swaybg` in questa
+configurazione: permette transizioni animate tra sfondi ed è pilotabile a runtime (utile anche
+per cambiare wallpaper insieme al tema colori generato da matugen).
+
+```bash
+# Se disponibile nei repo (Arch/AUR: swww-git, alcune distro derivate):
+sudo pacman -S swww          # Arch
+# oppure, su Debian/Ubuntu dove non è pacchettizzato, via cargo:
+cargo install swww
+sudo install -D ~/.cargo/bin/swww /usr/local/bin/swww
+sudo install -D ~/.cargo/bin/swww-daemon /usr/local/bin/swww-daemon
+```
+
+Verifica:
+```bash
+swww-daemon --version
+swww --version
+```
+
 ---
 
 ## Configurazione Niri (config.kdl)
@@ -278,7 +313,7 @@ environment {
 }
 
 // --- Layer rules ---
-// Sfondo (swaybg) dietro alle finestre
+// Sfondo (swww) dietro alle finestre
 layer-rule {
     match namespace="^wallpaper$"
     place-within-backdrop true
@@ -321,7 +356,10 @@ spawn-at-startup "bash" "-c" "dbus-update-activation-environment --systemd WAYLA
 spawn-at-startup "bash" "-c" "sleep 3 && systemctl --user restart xdg-desktop-portal-gtk.service && sleep 1 && systemctl --user restart xdg-desktop-portal.service > /dev/null 2>&1"
 spawn-at-startup "bash" "-c" "sleep 3 && waybar > /dev/null 2>&1"
 spawn-at-startup "dunst"
-spawn-at-startup "swaybg" "-i" "/home/noya/Immagini/blacklodge.jpg" "-m" "fill"
+
+// Avvio del demone swww e impostazione dello sfondo con transizione
+spawn-at-startup "bash" "-c" "swww-daemon & sleep 1 && swww img /home/noya/Immagini/blacklodge.jpg --transition-type wipe --transition-fps 60"
+
 spawn-at-startup "/home/noya/.config/waybar/scripts/nightlight.sh" "toggle"
 spawn-at-startup "xwayland-satellite"
 spawn-at-startup "swayidle" "-w" \
@@ -360,8 +398,24 @@ binds {
 }
 ```
 
-> **Nota:** `swaybg` punta a `/home/noya/Immagini/blacklodge.jpg`. Cambia il percorso
-> con il tuo sfondo. La finestra `kitty` usa opacità 0.80 e tema **Tokyo Night** (vedi `kitty.conf`).
+> **Nota:** `swww` sostituisce `swaybg`. Cambia il percorso dell'immagine in
+> `swww img ...` con il tuo sfondo. Puoi anche cambiare wallpaper "a caldo" senza
+> riavviare Niri, semplicemente rilanciando `swww img <percorso>` — utile se lo
+> script di generazione palette (matugen) rigenera anche lo sfondo. La finestra
+> `kitty` usa opacità 0.80 e tema **Tokyo Night** (vedi `kitty.conf`).
+
+### Cambiare sfondo/transizione a runtime con swww
+
+```bash
+# Cambio immediato
+swww img ~/Immagini/nuovo-sfondo.jpg
+
+# Con transizione personalizzata (dissolvenza dal centro)
+swww img ~/Immagini/nuovo-sfondo.jpg --transition-type grow --transition-pos center --transition-fps 60
+
+# Query stato demone
+swww query
+```
 
 ### Tabella Keybindings Completa
 
@@ -445,7 +499,7 @@ Copia il file JSON fornito (waybar-niri/config). Punti chiave:
     "modules-right": [
         "custom/mounts", "custom/backup", "tray", "custom/updates",
         "temperature", "cpu", "memory", "disk", "custom/nightlight",
-        "bluetooth", "pulseaudio#microphone", "pulseaudio",
+        "custom/bluetooth", "pulseaudio#microphone", "pulseaudio",
         "custom/weather", "battery", "network", "custom/power"
     ]
 }
@@ -506,7 +560,7 @@ Se il tuo monitor si chiama diversamente (es. HDMI-1, DP-2), aggiorna il config 
 | temperature | SI | Temperatura sensori |
 | backlight | SI | Luminosita' schermo |
 | tray | SI | System tray |
-| bluetooth | SI | Stato Bluetooth (toggle / blueman-manager) |
+| custom/bluetooth | SI | Stato Bluetooth via rfkill — click sinistro: on/off, click destro: blueman-manager |
 | custom/* | SI | Script personalizzati (calendario, meteo, mounts, ecc.) |
 ---
 
@@ -556,6 +610,42 @@ $EDITOR ~/.config/waybar/calendar.env        # GCAL_ICS_URL=https://.../basic.ic
 > Il segreto **non** va scritto in `calendar.conf`: lì si mette solo il *nome* della
 > variabile (`$GCAL_ICS_URL`), il cui valore vive in `calendar.env` (caricato in
 > automatico da `cal-sync.py`). Così la configurazione resta versionabile senza esporre l'URL.
+
+---
+
+## Menu Wi-Fi (Waybar + wpa\_cli)
+
+Il modulo `network` di Waybar apre un menu **fuzzel** con tutte le reti Wi-Fi disponibili
+quando il Wi-Fi è gestito da `wpa_supplicant` direttamente (non da NetworkManager).
+
+### Componenti
+
+| File (in `waybar-niri/`) | Ruolo |
+|--------------------------|-------|
+| `wifi-menu.py` | Script Python: scansiona via `wpa_cli`, mostra le reti in fuzzel, connette alle reti note o chiede la password per le nuove |
+| `wifi-menu.sudoers` | Regola sudoers da installare una tantum per permettere a `wpa_cli` di girare senza password |
+
+### Funzionamento
+
+- **Click sinistro** sul modulo Wi-Fi → apre il menu fuzzel con le reti trovate
+- La rete attiva è marcata con `●`; le reti protette mostrano 󰌾
+- **Rete nota** (già salvata in wpa_supplicant) → connessione immediata
+- **Rete nuova** → fuzzel chiede la password (nascosta con `--password`), poi connette e salva
+
+### Setup (una tantum)
+
+Il socket di `wpa_supplicant` (`/run/wpa_supplicant/wlp4s0`) è creato con gruppo `root`,
+non `netdev`, quindi `wpa_cli` ha bisogno di una regola sudoers senza password:
+
+```bash
+sudo install -m 440 ~/.config/waybar/wifi-menu.sudoers /etc/sudoers.d/wifi-menu
+# Verifica:
+sudo -l | grep wpa_cli
+# Deve comparire: NOPASSWD: /usr/sbin/wpa_cli -p /run/wpa_supplicant -i wlp4s0 *
+```
+
+> Se il nome dell'interfaccia non è `wlp4s0`, aggiorna sia `wifi-menu.py`
+> (variabile `WPA`) che `wifi-menu.sudoers` prima di installare.
 
 ---
 
@@ -830,6 +920,31 @@ sudo apt install wl-clipboard cliphist
 
 ---
 
+### Problema 11: swww-daemon non parte / "connection refused"
+**Sintomo:**
+
+Error: Failed to connect to swww daemon: Connection refused
+
+**Causa:** `swww img ...` è stato chiamato prima che `swww-daemon` fosse pronto (race
+condition allo startup), oppure il demone non è affatto in esecuzione.
+**Verifica:**
+
+```bash
+pgrep -a swww-daemon
+```
+
+**Soluzione:** assicurati che nello `spawn-at-startup` ci sia una piccola pausa tra
+l'avvio del demone e il primo comando `swww img`:
+
+```kdl
+spawn-at-startup "bash" "-c" "swww-daemon & sleep 1 && swww img /percorso/sfondo.jpg"
+```
+
+Se il problema persiste, aumenta il `sleep` (es. `sleep 2`) o lancia `swww-daemon`
+come servizio systemd `--user` separato con `Restart=on-failure`.
+
+---
+
 ## Quick Start
 ### Setup Veloce (5 minuti)
 # 1. Installa dipendenze
@@ -839,7 +954,7 @@ sudo apt install -y \
   build-essential pkg-config libwayland-dev libpango1.0-dev \
   libpipewire-0.3-dev libinput-dev libseat-dev libgbm-dev \
   libxkbcommon-dev libpixman-1-dev libudev-dev libdisplay-info-dev \
-  waybar fuzzel dunst swaybg kitty \
+  waybar fuzzel dunst kitty \
   xdg-desktop-portal xdg-desktop-portal-gtk \
   fonts-font-awesome libgtk-layer-shell0 \
   brightnessctl \
@@ -851,6 +966,8 @@ sudo apt install -y \
   dolphin galculator firefox-esr \
   blueman \
   python3-venv nvim
+# swww non è (quasi) mai nei repo apt: installalo via cargo (vedi sezione "Installare swww")
+cargo install swww
 ```
 
 Per il calendario, dopo l'avvio esegui una volta `~/.config/waybar/scripts/cal-setup.sh`
@@ -885,8 +1002,11 @@ I seguenti file sono forniti nella cartella `waybar-niri/`:
 - `colors.css` — variabili colore condivise
 - `cal-tui.conf` — config kitty per il calendario TUI (Tokyo Night)
 - `calendar.conf.example` / `calendar.env.example` — template per il calendario Google
+- `wifi-menu.py` — menu Wi-Fi con fuzzel (usa `wpa_cli`; vedi sezione dedicata)
+- `wifi-menu.sudoers` — regola sudoers per `wpa_cli` senza password (da installare con `sudo install`)
 - `scripts/` — calendario (`calendar.sh`, `cal-tui.sh`, `cal-sync.py`, `cal-setup.sh`),
-  `nightlight.sh`, `powermenu.sh`, `mounts.sh`, `update-sys`, `wttr.py`
+  `nightlight.sh`, `powermenu.sh`, `mounts.sh`, `update-sys`, `wttr.py`,
+  `bt-status.sh` (stato bluetooth per waybar), `bt-toggle.sh` (toggle rfkill + bluetoothctl)
 
 Copiali (oppure usa `stow`):
 
@@ -897,10 +1017,10 @@ cp -r scripts ~/.config/waybar/scripts
 ```
 
 I file lato Niri stanno in `niri/`:
-- `config.kdl` — configurazione principale
+- `config.kdl` — configurazione principale (usa `swww` per lo sfondo, non `swaybg`)
 - `colors.kdl` — palette (incluso da `config.kdl`)
 
 ---
 
-**Ultima modifica**: Giugno 2026
-**Testato su**: Debian Trixie (Testing), Niri 26.04, Waybar 0.12.0
+**Ultima modifica**: 14 Settembre 2026
+**Testato su**: Debian Trixie (Testing), Niri 26.04, Waybar 0.12.0, swww

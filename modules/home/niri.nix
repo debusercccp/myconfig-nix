@@ -4,7 +4,8 @@
   # BLOCCO PACCHETTI UTENTE PULITO (Senza font duplicati)
   home.packages = with pkgs; [
     fuzzel
-    swaybg
+    awww              # Demone sfondo (sostituisce swaybg; usato da set-theme)
+    qt6Packages.qt6ct # QT_QPA_PLATFORMTHEME=qt6ct (config.kdl)
     brightnessctl
     wireplumber
     kdePackages.dolphin
@@ -40,20 +41,31 @@
   };
 
   # --- MAPPATURA DIRECTORY DOTFILES ---
+  # niri/colors.kdl, waybar/matugen.css e fuzzel/matugen.ini sono generati da
+  # matugen (theme.nix): le directory sono reali (recursive) e solo i file del
+  # repo sono symlink, così matugen può scriverci accanto.
   xdg.configFile."niri/config.kdl".source = ./config/niri/config.kdl;
-  xdg.configFile."niri/colors.kdl".source = ./config/niri/colors.kdl;
-  xdg.configFile."waybar".source = ./config/waybar-niri;
-  xdg.configFile."fuzzel".source = ./config/fuzzel;
+  xdg.configFile."waybar" = {
+    source = ./config/waybar-niri;
+    recursive = true;
+  };
+  xdg.configFile."fuzzel" = {
+    source = ./config/fuzzel;
+    recursive = true;
+  };
 
   # --- GESTIONE STARTUP SERVIZI GRAFICI ---
-  systemd.user.services.swaybg = {
+  # Demone awww + ripristino dell'ultimo sfondo scelto con set-theme
+  # (~/.cache/current_wallpaper), con fallback su flames.jpg.
+  systemd.user.services.awww = {
     Unit = {
-      Description = "Swaybg Wallpaper Daemon";
+      Description = "awww Wallpaper Daemon";
       After = [ "graphical-session.target" ];
       PartOf = [ "graphical-session.target" ];
     };
     Service = {
-      ExecStart = "${pkgs.swaybg}/bin/swaybg -i /home/noya/Immagini/blacklodge.jpg -m fill";
+      ExecStart = "${pkgs.awww}/bin/awww-daemon";
+      ExecStartPost = "${pkgs.bash}/bin/bash -c 'sleep 0.5; w=$(cat %h/.cache/current_wallpaper 2>/dev/null || echo /home/noya/Immagini/flames.jpg); ${pkgs.awww}/bin/awww img \"$w\" --resize crop'";
       Restart = "on-failure";
     };
     Install = {

@@ -17,32 +17,26 @@ cursor {
    niri a compositare il cursore via software. */
 debug {
     disable-cursor-plane
+    render-drm-device "/dev/dri/renderD128"
 }
 
 include "colors.kdl"
 
 layout {
-    // Spazio tra le finestre
     gaps 16
-
     background-color "transparent"
 
-    // Il bordo della finestra attiva
     focus-ring {
-        width 4
-        // I colori della focus-ring arrivano da colors.kdl (incluso da config.kdl)
+        width 2
     }
 
-    // Il bordo delle finestre non attive
     border {
-        width 1
-        inactive-color "#44475a" // Colore fisso Dracula per le finestre inattive
+        width 0
     }
 }
 
-// Assegna swaybg al livello del backdrop
 layer-rule {
-    match namespace="^wallpaper$"
+    match namespace="^awww(-daemon)?$"
     place-within-backdrop true
 }
 
@@ -52,10 +46,24 @@ layer-rule {
     // open-on-output serve se hai multi-monitor
 }
 
+window-rule {
+    match app-id="^conky$"
+    open-floating true
+    open-focused false
+    default-floating-position x=24 y=56 relative-to="top-right"
+    focus-ring {
+        off
+    }
+    border {
+        off
+    }
+}
+
 environment {
     GDK_BACKEND "wayland"
-    QT_QPA_PLATFORM "wayland"
-    XDG_CURRENT_DESKTOP "niri"
+    QT_QPA_PLATFORM "wayland;xcb"
+    QT_QPA_PLATFORMTHEME "qt6ct"
+    XDG_CURRENT_DESKTOP "niri"  
     XDG_SESSION_TYPE "wayland"
     // Cursore coerente anche in app Xwayland/GTK
     XCURSOR_THEME "Adwaita"
@@ -119,6 +127,7 @@ window-rule {
     draw-border-with-background false
 }
 
+
 /* ================================================
    STARTUP COMMANDS - Avvio servizi e UI
    ================================================ */
@@ -131,18 +140,19 @@ spawn-at-startup "bash" "-c" "dbus-update-activation-environment --systemd WAYLA
 /* Riavvia i servizi XDG desktop portal */
 spawn-at-startup "bash" "-c" "sleep 3 && systemctl --user restart xdg-desktop-portal-gtk.service && sleep 1 && systemctl --user restart xdg-desktop-portal.service > /dev/null 2>&1"
 
-/* NB (NixOS): Waybar, Dunst e swaybg NON vengono avviati qui.
+/* NB (NixOS): Waybar, Dunst, awww-daemon e Conky NON vengono avviati qui.
    Sono gestiti da systemd via home-manager:
      - programs.waybar.systemd.enable  (niri.nix)
      - services.dunst.enable           (niri.nix / dunst.nix)
-     - systemd.user.services.swaybg    (niri.nix, usa blacklodge.jpg)
+     - systemd.user.services.awww      (niri.nix: demone + ultimo sfondo di set-theme)
+     - systemd.user.services.conky     (conky.nix)
    Avviarli anche da qui causerebbe processi duplicati. */
 
 /* Nightlight (filtro luce blu) */
 spawn-at-startup "/home/noya/.config/waybar/scripts/nightlight.sh" "toggle"
 
 /* Supporto app X11 (niri è Wayland-puro): server Xwayland on-demand su :0 */
-spawn-at-startup "xwayland-satellite"
+spawn-at-startup "xwayland-satellite" ":0"
 
 /* Agente PolicyKit: prompt grafici di autenticazione (montaggio dischi, ecc.)
    NixOS: il binario sta nel profilo Nix, non in /usr/lib. */
@@ -158,7 +168,6 @@ spawn-at-startup "swayidle" "-w" \
 // Salva la history del copia-incolla
 spawn-at-startup "wl-paste" "--watch" "cliphist" "store"
 
-spawn-at-startup "bash" "-c" "sleep 5 && conky -c ~/.config/conky/conky.conf"
 
 /* ================================================
    KEYBINDINGS - Scorciatoie da tastiera
@@ -225,6 +234,8 @@ binds {
     Mod+Ctrl+7 { move-column-to-workspace 7; }
     Mod+Ctrl+8 { move-column-to-workspace 8; }
     Mod+Ctrl+9 { move-column-to-workspace 9; }
+    
+    Mod+M { spawn "~/.local/bin/fp-duress.sh"; }
 
     /* ---- Column preset widths ---- */
     "Mod+BracketLeft" { switch-preset-column-width; }
@@ -256,7 +267,6 @@ binds {
     XF86HomePage { spawn "firefox"; }
     XF86Calculator { spawn "galculator"; }
     "Mod+L" allow-when-locked=true { spawn "swaylock"; }
-    XF86MyComputer { spawn "dolphin" "/home/noya/MiniSSD"; }
 
     /* ---- Screenshot ---- */
     // Regione selezionata -> file (comportamento originale)

@@ -24,14 +24,26 @@ myconfig-nix/
         ├── formatters.nix             # prettier, black, rustfmt, stylua, etc.
         ├── starship.nix               # Prompt custom
         ├── precommit.nix              # Pre-commit framework
+        ├── theme.nix                  # matugen: palette dal wallpaper (set-theme)
         └── config/
             ├── niri/                  # File di config KDL
             ├── nvim/                  # init.lua, lazy-lock.json
             ├── kitty/                 # kitty.conf
             ├── waybar-niri/           # Waybar config + script
             ├── dunst/                 # dunstrc
-            └── fuzzel/                # Launcher config
+            ├── fuzzel/                # Launcher config
+            ├── matugen/               # config.toml, template e colori di default
+            └── utils/                 # set-theme, fp-duress.sh
 ```
+
+### Tema dinamico (matugen + awww)
+
+`set-theme <wallpaper>` imposta lo sfondo con `awww` e rigenera la palette con
+`matugen`. I file generati (`niri/colors.kdl`, `swaylock/config`,
+`conky/conky.conf`, `waybar/matugen.css`, `fuzzel/matugen.ini`,
+`dunst/dunstrc.d/99-matugen.conf`, `nvim/lua/matugen_colors.lua`) non sono
+symlink nello store: al primo switch vengono copiati da
+`config/matugen/defaults/` e poi restano scrivibili.
 
 ---
 
@@ -42,12 +54,50 @@ myconfig-nix/
 - NixOS già installato
 - Git
 
-### Setup
+### Installazione rapida
 
-> **Scorciatoia**: dopo aver clonato il repo puoi eseguire `./install.sh` (abilita i
-> flake, imposta l'hostname `lynx` e lancia `nixos-rebuild switch --flake .#lynx`).
-> Uso: `./install.sh [HOSTNAME] [AZIONE]` (default `lynx switch`). I passi manuali
-> equivalenti sono qui sotto.
+```bash
+# 1. Clona il repo ed entra nella cartella
+git clone https://github.com/debusercccp/myconfig-nix.git
+cd myconfig-nix
+
+# 2. Applica il flake (abilita i flake, imposta l'hostname lynx,
+#    lancia sudo nixos-rebuild switch --flake .#lynx)
+./install.sh
+
+# 3. Dopo il primo login in niri: sfondo + palette colori (una volta sola)
+set-theme ~/Immagini/<sfondo>
+```
+
+`install.sh` accetta anche due argomenti: `./install.sh [HOSTNAME] [AZIONE]`
+(default `lynx switch`). Esempi: `./install.sh lynx test` (prova senza renderla
+persistente), `./install.sh lynx boot` (applica al prossimo avvio).
+
+`set-theme` (in `~/.local/bin`) imposta lo sfondo con `awww`, lo salva in
+`~/.cache/current_wallpaper` (ripristinato a ogni avvio) e rigenera i colori di
+niri, waybar, fuzzel, dunst, swaylock, conky e nvim con `matugen`. Puoi rilanciarlo
+quando vuoi per cambiare sfondo e tema.
+
+### Cambiare l'hostname
+
+L'hostname `lynx` compare in più punti e **devono coincidere tutti**:
+
+| File | Cosa cambiare |
+|------|---------------|
+| `hosts/desktop/configuration.nix` | `networking.hostName = "lynx";` |
+| `flake.nix` | `nixosConfigurations.lynx = ...` (nome dell'attributo) |
+| `install.sh` | `HOST="${1:-lynx}"` (default), oppure passa il nome: `./install.sh <nuovo>` |
+| `modules/home/shell.nix` | alias `nix-switch` (`--flake /etc/nixos#lynx`) |
+| `modules/home/config/waybar-niri/scripts/update-sys` | `nixos-rebuild switch --flake .#lynx` |
+
+Poi applica con `./install.sh <nuovo-hostname>` (oppure
+`sudo nixos-rebuild switch --flake .#<nuovo-hostname>`). Per la configurazione
+Home Manager standalone (Debian) il nome è invece `homeConfigurations."noya@orion"`
+in `flake.nix`.
+
+### Setup manuale
+
+Passi equivalenti a `./install.sh`:
 
 ```bash
 # 1. Clona il repo nella posizione corretta
@@ -57,8 +107,8 @@ sudo git clone https://github.com/debusercccp/myconfig-nix.git .
 
 # 2. Verifica l'hostname
 hostname
-# Deve essere "lynx" (configurato in hosts/desktop/configuration.nix)
-# Se diverso, modifica configuration.nix o cambia hostname:
+# Deve essere "lynx" (vedi "Cambiare l'hostname" qui sopra)
+# Se diverso, aggiorna i file indicati sopra o cambia hostname:
 sudo hostnamectl set-hostname lynx
 
 # 3. Abilita Flakes (se non abilitato)

@@ -1,4 +1,5 @@
-@import "colors.css";
+@import "matugen.css";
+/* @import "colors.css"; */
 
 /* ================================================
    Waybar - Tema Dinamico (Fixed Padding)
@@ -32,7 +33,7 @@ window#waybar {
 /* Questo ridà spazio alle icone schiacciate */
 #custom-launcher, #custom-power, #custom-updates, #niri-workspaces,
 #clock, #tray, #battery, #pulseaudio, #network, #cpu, #memory,
-#disk, #temperature, #backlight, #custom-bluetooth, #custom-nightlight,
+#disk, #temperature, #backlight, #custom-bluetooth, #custom-caffeine, #custom-nightlight,
 #custom-mounts, #custom-backup, #custom-calendar {
     padding: 0 10px;
 }
@@ -73,6 +74,21 @@ window#waybar {
 
 #custom-mounts {
     color: @accent;
+}
+
+#custom-nightlight {
+    margin: 0 8px;
+}
+
+#custom-caffeine {
+    margin: 0 8px;
+}
+
+#custom-caffeine.active {
+    color: @warning;
+}
+#custom-caffeine.inactive {
+    color: @fg;
 }
 
 /* Tooltip dinamico */
