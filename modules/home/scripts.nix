@@ -1,7 +1,20 @@
 { pkgs, ... }:
 
+let
+  # notizie: titoli dei giornali italiani nel terminale (curl + fzf + less).
+  # Pacchetto unico perché `notizie` cerca notizie-feed/notizie-leggi
+  # accanto a sé (realpath $0): servono nella stessa cartella dello store.
+  notizie = pkgs.runCommand "notizie" { } ''
+    mkdir -p $out/bin
+    cp ${./config/utils/notizie}/{notizie,notizie-feed,notizie-leggi,notyzie} $out/bin/
+    chmod +x $out/bin/*
+  '';
+in
 {
   home.packages = with pkgs; [
+    notizie
+    curl
+    less
     git
     jq
     libnotify

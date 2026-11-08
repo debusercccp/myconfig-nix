@@ -1,0 +1,177 @@
+#!/usr/bin/env bash
+# notizie - leggi i titoli dei giornali italiani dal terminale (curl + notizie-feed + fzf)
+# Tasti in stile vim:
+#   normale (prompt "> ")  j/k su/giù, g/G inizio/fine, l o INVIO apri, o browser, y copia link,
+#                          / cerca, i riprendi ricerca, : comando
+#   ricerca (prompt "/")   scrivi per filtrare, ESC o INVIO torna in normale
+#   comando (prompt ":")   :q indietro (dalle notizie ai giornali, dai giornali esce), :qa esci, :o browser,
+#                          :e riscarica i feed, ESC annulla
+# Cache dei feed in ~/.cache/notizie, riscaricata dopo NOTIZIE_TTL secondi (predefinito 600)
+set -euo pipefail
+
+# fzf richiama lo script con il percorso assoluto, quindi per --tasto basta $0
+if [[ ${1:-} == --tasto ]]; then SELF=$0; else SELF=$(realpath "$0"); fi
+DIR=${SELF%/*}  # notizie-feed e notizie-leggi stanno accanto a questo script
+
+# Chiamato da fzf a ogni tasto: stampa le azioni fzf adatte alla modalità corrente.
+# $1 = tasto, $2 = lista (giornali|notizie); fzf passa la modalità in $FZF_PROMPT
+tasto() {
+  local k=$1 lista=$2
+  local normale="disable-search+change-prompt(> )"
+  local salvata="$NOTIZIE_TMP/query"
+
+  apri() {
+    if [[ $lista == giornali ]]; then echo accept
+    else echo "execute:\"$DIR/notizie-leggi\" {3}"; fi
+  }
+
+  case $FZF_PROMPT in
+    ':')
+      case $k in
+        esc) echo "$normale+change-query:$(cat "$salvata" 2>/dev/null)" ;;
+        enter)
+          local cmd=${FZF_QUERY//[()]/}
+          case $cmd in
+            # nelle notizie :q torna ai giornali (abort), :qa esce del tutto (stampa :qa e accetta)
+            q|q!|wq|x|quit) echo abort ;;
+            qa|qa!|exit) [[ $lista == notizie ]] && echo "print(:qa)+accept" || echo abort ;;
+            # :e riscarica i feed (come riaprire il file in vim)
+            e|e!|edit) [[ $lista == notizie ]] && echo "print(:e)+accept" \
+                 || echo "$normale+change-query:$(cat "$salvata" 2>/dev/null)" ;;
+            o) [[ $lista == notizie ]] && echo "$normale+execute-silent:xdg-open {3} >/dev/null 2>&1 &" \
+                 || echo "$normale+change-query:$(cat "$salvata" 2>/dev/null)" ;;
+            *) echo "$normale+change-header(E492: comando sconosciuto :$cmd — usa :q per uscire)+change-query:$(cat "$salvata" 2>/dev/null)" ;;
+          esac ;;
+        *) echo "put:$k" ;;
+      esac ;;
+    '/')
+      case $k in
+        esc|enter) echo "$normale" ;;
+        *) echo "put:$k" ;;
+      esac ;;
+    *)  # modalità normale
+      case $k in
+        j) echo down ;;
+        k) echo up ;;
+        g) echo first ;;
+        G) echo last ;;
+        l|enter) apri ;;
+        o) [[ $lista == notizie ]] && echo "execute-silent:xdg-open {3} >/dev/null 2>&1 &" || echo ignore ;;
+        y) [[ $lista == notizie ]] && echo "execute-silent:printf %s {3} | (wl-copy 2>/dev/null || xclip -sel clip 2>/dev/null)" || echo ignore ;;
+        /) echo "enable-search+change-prompt(/)+clear-query" ;;
+        i) echo "enable-search+change-prompt(/)" ;;
+        :) printf %s "$FZF_QUERY" > "$salvata"; echo "change-prompt(:)+clear-query" ;;
+        *) echo ignore ;;
+      esac ;;
+  esac
+}
+
+if [[ ${1:-} == --tasto ]]; then tasto "$2" "$3"; exit; fi
+
+# Opzioni fzf comuni alle due liste: si parte in modalità normale, come vim
+vim_fzf() {
+  local lista=$1; shift
+  local binds=()
+  # tutte le lettere e cifre passano da tasto(), così in modalità normale non finiscono nella query
+  for k in {a..z} {A..Z} {0..9} / : esc enter; do
+    binds+=(--bind "$k:transform:\"$SELF\" --tasto '$k' $lista")
+  done
+  # --exact: la ricerca trova la parola intera, non le lettere sparse
+  fzf --exact --disabled --prompt="> " "${binds[@]}" "$@"
+}
+
+declare -A FEEDS=(
+  [ANSA]="https://www.ansa.it/sito/notizie/topnews/topnews_rss.xml"
+  [Repubblica]="https://www.repubblica.it/rss/homepage/rss2.0.xml"
+  [Corriere]="https://xml2.corriereobjects.it/rss/homepage.xml"
+  [Sole24Ore]="https://www.ilsole24ore.com/rss/italia.xml"
+  [FattoQuotidiano]="https://www.ilfattoquotidiano.it/feed/"
+  [LaStampa]="https://www.lastampa.it/rss/copertina.xml"
+  [Manifesto]="https://ilmanifesto.it/feed"
+)
+
+TMP=$(mktemp -d); trap 'rm -rf "$TMP"' EXIT
+export NOTIZIE_TMP=$TMP
+
+# Scarica un feed RSS; notizie-feed lo trasforma in "giornale<TAB>titolo<TAB>link<TAB>descrizione"
+leggi_feed() {
+  local nome=$1 url=$2
+  curl -sL -A "Mozilla/5.0" --max-time 15 "$url" | "$DIR/notizie-feed" "$nome" || true
+}
+
+CACHE=${XDG_CACHE_HOME:-$HOME/.cache}/notizie
+TTL=${NOTIZIE_TTL:-600}  # secondi dopo cui la cache di un giornale viene riscaricata
+mkdir -p "$CACHE"
+
+# Riscarica un giornale nella cache; se il download fallisce resta la cache vecchia
+aggiorna() {
+  local g=$1 nuovo="$CACHE/$1.tsv.$$.$BASHPID"
+  leggi_feed "$g" "${FEEDS[$g]}" > "$nuovo"
+  if [[ -s $nuovo ]]; then mv "$nuovo" "$CACHE/$g.tsv"; else rm -f "$nuovo"; fi
+}
+
+# Riscarica in parallelo i giornali passati come argomenti
+aggiorna_tutti() {
+  local pids=() g
+  for g in "$@"; do aggiorna "$g" & pids+=($!); done
+  wait "${pids[@]}"
+}
+
+TASTI="j/k muovi | l o INVIO leggi (:q per tornare) | o browser | y copia link | / cerca | ESC normale | :e aggiorna | :q giornali | :qa esci"
+n=0
+
+while true; do
+  # 1) scegli i giornali (TAB per selezionarne più di uno)
+  scelti=$(printf '%s\n' "${!FEEDS[@]}" | sort \
+    | vim_fzf giornali --multi --height=40% \
+        --header="j/k muovi | TAB seleziona | l o INVIO conferma | / cerca | :q esci") || exit 0
+
+  forza=0
+  while true; do
+    # 2) cache: si scarica subito solo ciò che manca (o tutto con :e);
+    #    i giornali con cache vecchia si mostrano subito e si aggiornano in background
+    subito=() dopo=() file=()
+    while read -r g; do
+      f=$CACHE/$g.tsv; file+=("$f")
+      if [[ ! -s $f || $forza == 1 ]]; then subito+=("$g")
+      elif (( EPOCHSECONDS - $(stat -c %Y "$f") > TTL )); then dopo+=("$g"); fi
+    done <<< "$scelti"
+    forza=0
+
+    if (( ${#subito[@]} )); then
+      echo "Scarico ${subito[*]}…" >&2
+      aggiorna_tutti "${subito[@]}"
+    fi
+
+    printf -v ricarica ' %q' "${file[@]}"; ricarica="cat$ricarica 2>/dev/null"
+    vecchia=$(stat -c %Y "${file[@]}" 2>/dev/null | sort -n | head -1)
+    ora=$(date -d "@${vecchia:-$EPOCHSECONDS}" +%H:%M)
+    sock=$TMP/fzf-$((n++)).sock  # un socket per lista, così un aggiornamento in ritardo non finisce nella lista successiva
+    bg=
+    if (( ${#dopo[@]} )); then
+      stato="Notizie delle $ora · aggiorno ${dopo[*]}…"
+      # finito il download, chiede a fzf (via --listen) di ricaricare la lista
+      ( aggiorna_tutti "${dopo[@]}"
+        for _ in {1..50}; do [[ -S $sock ]] && break; sleep 0.1; done
+        curl -s --unix-socket "$sock" http://fzf \
+          -d "change-header[Aggiornate alle $(date +%H:%M)"$'\n'"$TASTI]+reload-sync:$ricarica" ) >/dev/null 2>&1 &
+      bg=$!
+    else
+      stato="Notizie delle $ora"
+    fi
+
+    # 3) scegli le notizie: l o INVIO legge nel terminale (:q in less per tornare alla lista)
+    #    :q torna ai giornali, :qa esce, :e riscarica
+    esito=$(eval "$ricarica" | vim_fzf notizie --multi --delimiter=$'\t' --with-nth=1,2 \
+        --listen="$sock" --header="$stato"$'\n'"$TASTI" \
+        --preview='printf "\033[1m%s\033[0m\n\n%s\n\n\033[2m%s\033[0m\n" {2} {4} {3}' \
+        --preview-window=down,35%,wrap) || true
+    [[ -n $bg ]] && kill "$bg" 2>/dev/null || true  # i download già partiti finiscono e aggiornano la cache
+
+    case $esito in
+      :qa*) exit 0 ;;
+      :e*) forza=1 ;;
+      *) break ;;
+    esac
+  done
+done
