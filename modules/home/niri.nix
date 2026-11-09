@@ -65,7 +65,8 @@
     };
     Service = {
       ExecStart = "${pkgs.awww}/bin/awww-daemon";
-      ExecStartPost = "${pkgs.bash}/bin/bash -c 'sleep 0.5; w=$(cat %h/.cache/current_wallpaper 2>/dev/null || echo /home/noya/Immagini/flames.jpg); ${pkgs.awww}/bin/awww img \"$w\" --resize crop'";
+      # Il prefisso "-" e il controllo del file: senza sfondo (es. VM) il demone resta attivo.
+      ExecStartPost = "-${pkgs.bash}/bin/bash -c 'sleep 0.5; w=$(cat %h/.cache/current_wallpaper 2>/dev/null || echo /home/noya/Immagini/flames.jpg); [ -f \"$w\" ] && ${pkgs.awww}/bin/awww img \"$w\" --resize crop; exit 0'";
       Restart = "on-failure";
     };
     Install = {
